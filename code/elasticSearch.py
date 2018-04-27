@@ -21,6 +21,7 @@ def getConstants(file):
 			fieldnames += [const['id']]
 			values += [const['value']]
 		const = dict(zip(fieldnames, values))
+		const['filename'] = file.split('/')[-1].split('.')[0]
 	return const
 
 def addDocument(data, meta, INDEX_NAME, TYPE):
@@ -33,7 +34,8 @@ def addDocument(data, meta, INDEX_NAME, TYPE):
 		i = 0
 		for row in reader:
 			row.update(constants)
-			es.index(index=INDEX_NAME, doc_type=TYPE, body=row)
+			print(row)
+			#es.index(index=INDEX_NAME, doc_type=TYPE, body=row)
 			i += 1
 	print(data, 'added to elasticsearch index ', INDEX_NAME)
 
@@ -47,6 +49,8 @@ if __name__ == '__main__':
 	parser.add_argument('--INDEX_NAME', default='dlrmetadata',
 	                    help='elasticsearch index name to which document will be added')
 	args = parser.parse_args()
+
+	TYPE = 'doc'
 
 	#meta = 'data/meta/m_airrsgtc.json' #data = 'data/data/m_airrsgtc.tsv'
 
@@ -63,7 +67,7 @@ if __name__ == '__main__':
 
 		for data in files:
 			meta = data.split('/')
-			TYPE = meta[-1].split('.')[0]
+			#TYPE = meta[-1].split('.')[0]
 			meta[-2] = 'meta'
 			meta[-1] = meta[-1].replace('.tsv', '.json')
 			meta = '/'.join(meta)
