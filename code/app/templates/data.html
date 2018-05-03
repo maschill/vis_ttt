@@ -1,0 +1,55 @@
+{% extends "layout.html" %}
+{% block body %}
+Data overview
+<html>
+<p>check out</p>
+<form action="/data" method="post" autocomplete="on">
+    <label for="q">search filename: </label><input type="text" name ="q" id ="q" value="{{q}}">
+    <input type="submit" value="search">
+
+    {{response}}
+</form>
+<style>
+#customers {
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+#customers td, #customers th {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+#customers tr:nth-child(even){background-color: #f2f2f2;}
+
+#customers tr:hover {background-color: #ddd;}
+
+#customers th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #4CAF50;
+    color: white;
+}
+</style>
+<table id="customers">
+  <tr>
+    <th>Filename</th>
+    <th>Last update</th>
+      <th>Link for Update</th>
+  </tr>
+    {% for key, val in files.items() %}
+        <tr>
+            <td>{{key}}</td>
+            <td>{{val}}</td>
+            <td>
+                <a href="/">Testlink</a>
+            </td>
+
+        </tr>
+
+    {% endfor %}
+</table>
+</html>
+{% endblock %}

@@ -35,7 +35,7 @@ def addDocument(data, meta, INDEX_NAME, TYPE):
 		for row in reader:
 			row.update(constants)
 			print(row)
-			#es.index(index=INDEX_NAME, doc_type=TYPE, body=row)
+			es.index(index=INDEX_NAME, doc_type=TYPE, body=row)
 			i += 1
 	print(data, 'added to elasticsearch index ', INDEX_NAME)
 
