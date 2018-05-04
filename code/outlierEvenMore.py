@@ -6,11 +6,6 @@ from scipy import stats
 import numpy as np
 import warnings
 
-def getfieldnames(file):
-	with open(file) as f:
-		data = json.load(f)
-		return(tuple(data['columns']))
-
 def delMissesAndOutliers(dataset):
     
     num = dataset.select_dtypes(include=[np.number]).columns.values
@@ -19,11 +14,16 @@ def delMissesAndOutliers(dataset):
     dataset.dropna(inplace=True)
 
     return dataset
+
 # first bool column outlier, second misses in row
 def markMissesAndOutliers(dataset):
 
     num = dataset.select_dtypes(include=[np.number]).columns.values
-    dataset[dataset.shape[1]] = (dataset[num]-dataset[num].mean()).abs()/dataset[num].std()<3
+    dataset[dataset.shape[1]]=True
+
+    for i in num:
+        dataset[dataset.shape[1]-1] = np.where(dataset[dataset.shape[1]-1]==True, \
+                                               ((dataset[i]-dataset[i].mean()).abs()/dataset[i].std()<3), False)
 
     miss = np.where(pd.isnull(dataset))[0]
 
@@ -40,7 +40,11 @@ def markMissesAndOutliers(dataset):
 def replaceMissesMarkOutliers(dataset):
 
     num = dataset.select_dtypes(include=[np.number]).columns.values
-    dataset[dataset.shape[1]] = (dataset[num]-dataset[num].mean()).abs()/dataset[num].std()<3
+    dataset[dataset.shape[1]]=True
+
+    for i in num:
+        dataset[dataset.shape[1]-1] = np.where(dataset[dataset.shape[1]-1]==True, \
+                                               ((dataset[i]-dataset[i].mean()).abs()/dataset[i].std()<3), False)
 
     dataset.fillna(dataset.mode().iloc[0], inplace=True)
 
