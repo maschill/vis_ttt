@@ -6,6 +6,7 @@ from elasticsearch import helpers, Elasticsearch
 import csv, json
 import glob, os
 import argparse
+import outlierEvenMore
 
 def getfieldnames(file):
 	with open(file) as f:
@@ -26,6 +27,10 @@ def getConstants(file):
 
 def addDocument(data, meta, INDEX_NAME, TYPE):
 	with open(data) as f:
+		#preprocess data
+		f = timeConv(f)
+
+		# read data
 		fieldnames = getfieldnames(meta)
 		constants = getConstants(meta)
 		reader = csv.DictReader(f, fieldnames=fieldnames, delimiter='\t')
@@ -66,12 +71,17 @@ if __name__ == '__main__':
 		files = glob.glob(os.path.join(args.folder, '*'))
 
 		for data in files:
+
 			meta = data.split('/')
 			#TYPE = meta[-1].split('.')[0]
 			meta[-2] = 'meta'
 			meta[-1] = meta[-1].replace('.tsv', '.json')
 			meta = '/'.join(meta)
 			addDocument(data=data, meta=meta, INDEX_NAME= args.INDEX_NAME, TYPE=TYPE)
+			filenames = {'filename': data.split('/')[-1].split('.')[0], 'size': os.path.getsize(data)}
+			es.index(index='dataoverview', doc_type='doc', body=filenames)
 	else:
-		TYPE = args.meta.split('/')[-1].split('.')[0]
+		#TYPE = args.meta.split('/')[-1].split('.')[0]
 		addDocument(data=args.data, meta=args.meta, INDEX_NAME=args.INDEX_NAME, TYPE=TYPE)
+		filenames = {'filename': args.data.split('/')[-1].split('.')[0], 'size': os.path.getsize(args.data)}
+		es.index(index='dataoverview', doc_type='doc', body=filenames)
