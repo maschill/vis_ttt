@@ -14,6 +14,7 @@ def delMissesAndOutliers(dataset):
     dataset.dropna(inplace=True)
 
     return dataset
+
 # first bool column outlier, second misses in row
 def markMissesAndOutliers(dataset):
 

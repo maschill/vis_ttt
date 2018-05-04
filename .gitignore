@@ -1,3 +1,4 @@
 data/*
 .idea/*
 code/app/__pycache__/*
+code/app/files.pyc
