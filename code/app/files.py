@@ -20,7 +20,8 @@ def filesfromEL(es):
 	res = es.search(index='dataoverview', body={"query": {"match_all": {}}, "_source": ["filename","size"]})
 	filenames = [x['_source']['filename'] for x in res['hits']['hits']]
 	size = [x['_source']['size'] for x in res['hits']['hits']]
-	orderedfilenames = collections.OrderedDict(sorted(zip(filenames, size)))
+	update = [x['_source']['size'] for x in res['hits']['hits']]
+	orderedfilenames = collections.OrderedDict(sorted(zip(filenames, zip(size, update))))
 	return orderedfilenames
 
 if __name__== '__main__':

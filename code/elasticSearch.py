@@ -44,6 +44,11 @@ def addDocument(data, meta, INDEX_NAME, TYPE):
 			i += 1
 	print(data, 'added to elasticsearch index ', INDEX_NAME)
 
+#delete index
+#es.indices.delete(index='test-index', ignore=[400, 404])
+
+#
+
 if __name__ == '__main__':
 
 	parser = argparse.ArgumentParser(description='Create index and load tsv file in elaseicsearch.')
@@ -81,7 +86,8 @@ if __name__ == '__main__':
 			now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 			filenames = {'filename': data.split('/')[-1].split('.')[0],
 			             'size': os.path.getsize(data),
-			             'addDate': now}
+			             'addDate': now,
+			             'updateDate': now}
 			es.index(index='dataoverview', doc_type='doc', body=filenames)
 	else:
 		#TYPE = args.meta.split('/')[-1].split('.')[0]
@@ -89,5 +95,6 @@ if __name__ == '__main__':
 		now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 		filenames = {'filename': args.data.split('/')[-1].split('.')[0],
 		             'size': os.path.getsize(args.data),
-		             'addDate': now}
+		             'addDate': now,
+		             'updateDate': now}
 		es.index(index='dataoverview', doc_type='doc', body=filenames)
