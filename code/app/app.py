@@ -1,11 +1,11 @@
 from flask import Flask, render_template, request
 from elasticsearch import Elasticsearch
-from files import files
+from files import filesfromEL
 
 es = Elasticsearch([{'host':'localhost','port': 9200}])
 app = Flask(__name__)
 
-Files = files()
+Files = filesfromEL(es=es)
 print(Files)
 
 @app.route('/')

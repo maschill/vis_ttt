@@ -28,7 +28,7 @@ def getConstants(file):
 def addDocument(data, meta, INDEX_NAME, TYPE):
 	with open(data) as f:
 		#preprocess data
-		f = timeConv(f)
+		#f = timeConv(f)
 
 		# read data
 		fieldnames = getfieldnames(meta)

@@ -16,8 +16,12 @@ def files():
 	print(orderedfilenames)
 	return orderedfilenames
 
-def filesfromel():
-	
+def filesfromEL(es):
+	res = es.search(index='dataoverview', body={"query": {"match_all": {}}, "fields": ["filename","size"]})
+	filenames = [x['fields']['filename'][0] for x in res['hits']['hits']]
+	size = [x['fields']['size'][0] for x in res['hits']['hits']]
+	orderedfilenames = collections.OrderedDict(sorted(zip(filenames, size)))
+	return orderedfilenames
 
 if __name__== '__main__':
 	Files = files()

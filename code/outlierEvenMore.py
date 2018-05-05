@@ -78,7 +78,7 @@ def main():
 
     dataset=timeConv(dataset)
 
-    print dataset.head(10)
+    #print dataset.head(10)
 
     dataset.to_csv('data/data/m_airrsgtc_temp.tsv', header=False, index=False,sep='\t')
 
