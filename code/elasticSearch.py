@@ -78,10 +78,16 @@ if __name__ == '__main__':
 			meta[-1] = meta[-1].replace('.tsv', '.json')
 			meta = '/'.join(meta)
 			addDocument(data=data, meta=meta, INDEX_NAME= args.INDEX_NAME, TYPE=TYPE)
-			filenames = {'filename': data.split('/')[-1].split('.')[0], 'size': os.path.getsize(data)}
+			now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+			filenames = {'filename': data.split('/')[-1].split('.')[0],
+			             'size': os.path.getsize(data),
+			             'addDate': now}
 			es.index(index='dataoverview', doc_type='doc', body=filenames)
 	else:
 		#TYPE = args.meta.split('/')[-1].split('.')[0]
 		addDocument(data=args.data, meta=args.meta, INDEX_NAME=args.INDEX_NAME, TYPE=TYPE)
-		filenames = {'filename': args.data.split('/')[-1].split('.')[0], 'size': os.path.getsize(args.data)}
+		now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+		filenames = {'filename': args.data.split('/')[-1].split('.')[0],
+		             'size': os.path.getsize(args.data),
+		             'addDate': now}
 		es.index(index='dataoverview', doc_type='doc', body=filenames)
