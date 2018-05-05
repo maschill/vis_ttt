@@ -17,9 +17,9 @@ def files():
 	return orderedfilenames
 
 def filesfromEL(es):
-	res = es.search(index='dataoverview', body={"query": {"match_all": {}}, "fields": ["filename","size"]})
-	filenames = [x['fields']['filename'][0] for x in res['hits']['hits']]
-	size = [x['fields']['size'][0] for x in res['hits']['hits']]
+	res = es.search(index='dataoverview', body={"query": {"match_all": {}}, "_source": ["filename","size"]})
+	filenames = [x['_source']['filename'] for x in res['hits']['hits']]
+	size = [x['_source']['size'] for x in res['hits']['hits']]
 	orderedfilenames = collections.OrderedDict(sorted(zip(filenames, size)))
 	return orderedfilenames
 
