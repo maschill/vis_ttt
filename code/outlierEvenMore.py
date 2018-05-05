@@ -70,7 +70,7 @@ def main():
     ### switch from deleting to marking
     
     dataset=pd.read_csv('data/data/m_airrsgtc.tsv',header=None,sep='\t')
-    print(dataset.describe())
+    #print(dataset.describe())
 
     dataset=markMissesAndOutliers(dataset)
         #dataset=delMissesAndOutliers(dataset)

@@ -6,7 +6,7 @@ from elasticsearch import helpers, Elasticsearch
 import csv, json
 import glob, os
 import argparse
-import outlierEvenMore
+from outlierEvenMore import timeConv
 
 def getfieldnames(file):
 	with open(file) as f:
@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
 	TYPE = 'doc'
 
-	#meta = 'data/meta/m_airrsgtc.json' #data = 'data/data/m_airrsgtc.tsv'
+	#meta='../data/meta/m_airrsgtc.json' #data='../data/data/m_airrsgtc.tsv'
 
 	es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
 	print('Initialize elasticsearch with', es)

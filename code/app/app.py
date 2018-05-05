@@ -5,18 +5,19 @@ from files import files
 es = Elasticsearch([{'host':'localhost','port': 9200}])
 app = Flask(__name__)
 
+Files = files()
+print(Files)
+
 @app.route('/')
 def index():
 	return render_template('home.html')
-
-#@app.route('/data')
-#def data():
-#	return render_template('data.html', files = Files)
-
+'''
+@app.route('/data')
+def data():
+	return render_template('data.html', files=Files)
+'''
 @app.route('/data', methods=['GET','POST'])
 def data():
-	Files = files()
-
 	q = request.args.get('q')
 	#q = request.form.get('q')
 

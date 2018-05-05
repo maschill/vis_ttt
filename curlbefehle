@@ -1,0 +1,48 @@
+curl -X POST "http://localhost:9200/dataoverview/_search?pretty=true" -d '
+  {
+    "query" : { "query_string" : {"query" : "*"} },
+    "facets" : {
+      "tags" : { "terms" : {"field" : "filename"} }
+    }
+  }
+'
+
+curl -XGET  http://localhost:9200/dataoverview/_search?pretty -d '
+{
+    "aggs" : {
+        "whatever_you_like_here" : {
+            "terms" : { "field" : "author", "size":10000 }
+        }
+    },
+    "size" : 0
+}'
+
+curl -X POST "http://localhost:9200/dataoverview/_search?pretty=true" -d '
+{
+  "facets" : {
+    "tags" : { "terms" : {"field" : "filename"} },
+    "size" : 60
+  },
+  "size" : 0
+}
+'
+
+curl -X POST "http://localhost:9200/dataoverview/_search?pretty=true" -d '
+{
+"query" : { "query_string" : {"query" : "*"} },
+"facets" : {
+"tags" : { "terms" : {"field" : "filename"} }
+}
+}'
+
+
+curl -XGET  http://localhost:9200/dataoverview/_search?pretty -d '
+{
+"aggs" : {
+"whatever_you_like_here" : {
+"terms" : { "field" : "filename", "size":10000 }
+}
+},
+"size" : 0
+}'
+
