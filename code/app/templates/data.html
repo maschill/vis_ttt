@@ -1,5 +1,7 @@
 {% extends "layout.html" %}
 {% block body %}
+
+
 <h2>Data Overview</h2>
 <br>
 <div class="float-md-left">
@@ -10,8 +12,8 @@
 </form>
 </div>
 <div class="btn-group float-md-right" role="group">
-    <button type="button" class="btn border border-dark btn-default" id='upload_button'>Upload</button>
-    <button type="button" class="btn border border-dark btn-default">Delete All</button>
+    <button type="button" class="btn border border-dark btn-default" id="upload_button">Upload</button>
+    <button type="button" class="btn border border-dark btn-default" id="delete_button">Delete All</button>
   </div>
 <style>
 #customers {
@@ -55,29 +57,33 @@
     {% endfor %}
 </table>
 
-<script>
-$("#upload_button").click(function(){
-    $.ajax({
-      type: 'POST',
-      url: "/_upload_button",
-      data: {student_id: 1},
-      dataType: "text",
-      success: function(data){
-                 alert("Deleted Student ID ");
-               }
+<script type="text/javascript">
+    $(function(){
+        alert("jquery loaded");
     });
-});
-
-$("#delete_button").click(function(){
-    $.ajax({
-      type: 'POST',
-      url: "/_delete_button",
-      data: {student_id: 1},
-      dataType: "text",
-      success: function(data){
-                 alert("Deleted Student ID ");
-               }
+    
+    $('#upload_button').click(function(){
+        // $.ajax({
+        //   type: 'POST',
+        //   url: "/_upload_button",
+        //   data: {},
+        //   dataType: "text",
+        //   success: function(data){
+        alert("Deleted Student ID ");
+        //            }
+        // });
     });
-});
-</script>
+            
+    $("#delete_button").click(function(){
+        $.ajax({
+            type: 'POST',
+            url: "/_delete_button",
+            data: {},
+            dataType: "text",
+            success: function(){
+                alert("Deleted Student ID ");
+            }
+        });
+    });
+    </script>
 {% endblock %}

@@ -18,17 +18,17 @@ def data():
 '''
 
 #this is called when clicking the upload button
-@app.route('/_upload_button')
+@app.route('/_upload_button', methods=['GET', 'POST'])
 def _upload_button():
-	arg = request.args.get('student_id', 0)
-	print(arg)
+	#arg = request.args.get('student_id', 0)
+	print('Someone clicked on Upload')
 	return jsonify(status="success")
 
 #this is called when clicking the delete all button
-@app.route('/_delete_button')
+@app.route('/_delete_button', methods=['GET', 'POST'])
 def _delete_button():
-	arg = request.args.get('student_id', 0)
-	print(arg)
+	#arg = request.args.get('student_id', 0)
+	print('Someone clicked on DELETE ALL')
 	return jsonify(status="success")
 
 
@@ -39,7 +39,6 @@ def data():
 
 	if q is not None:
 		resp = es.search(index='dataoverview', doc_type='doc', body={"query": {"match": {"filename": q}}})
-		print(resp)
 		return render_template("data.html", q=q, response=resp, files=Files)
 	else:
 		return render_template('data.html', files=Files)
