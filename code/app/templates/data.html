@@ -5,12 +5,12 @@
 <div class="float-md-left">
 <form action="/data" method="get" autocomplete="on">
     <label for="q">search filename: </label><input type="text" name ="q" id ="q" value="{{q}}">
-    <input type="submit" value="search">
+    <input class="btn btn-default border border-dark" type="submit" value="search">    
     {{response}}
 </form>
 </div>
 <div class="btn-group float-md-right" role="group">
-    <button type="button" class="btn border border-dark btn-default">Upload</button>
+    <button type="button" class="btn border border-dark btn-default" id='upload_button'>Upload</button>
     <button type="button" class="btn border border-dark btn-default">Delete All</button>
   </div>
 <style>
@@ -54,4 +54,30 @@
 
     {% endfor %}
 </table>
+
+<script>
+$("#upload_button").click(function(){
+    $.ajax({
+      type: 'POST',
+      url: "/_upload_button",
+      data: {student_id: 1},
+      dataType: "text",
+      success: function(data){
+                 alert("Deleted Student ID ");
+               }
+    });
+});
+
+$("#delete_button").click(function(){
+    $.ajax({
+      type: 'POST',
+      url: "/_delete_button",
+      data: {student_id: 1},
+      dataType: "text",
+      success: function(data){
+                 alert("Deleted Student ID ");
+               }
+    });
+});
+</script>
 {% endblock %}
