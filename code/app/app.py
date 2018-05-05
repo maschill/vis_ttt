@@ -23,6 +23,7 @@ def data():
 
 	if q is not None:
 		resp = es.search(index='dataoverview', doc_type='doc', body={"query": {"match": {"filename": q}}})
+		print(resp)
 		return render_template("data.html", q=q, response=resp, files=Files)
 	else:
 		return render_template('data.html', files=Files)

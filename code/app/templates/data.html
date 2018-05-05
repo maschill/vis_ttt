@@ -1,13 +1,18 @@
 {% extends "layout.html" %}
 {% block body %}
-Data overview
-<html>
-<p>check out</p>
+<h2>Data Overview</h2>
+<br>
+<div class="float-md-left">
 <form action="/data" method="get" autocomplete="on">
     <label for="q">search filename: </label><input type="text" name ="q" id ="q" value="{{q}}">
     <input type="submit" value="search">
     {{response}}
 </form>
+</div>
+<div class="btn-group float-md-right" role="group">
+    <button type="button" class="btn border border-dark btn-default">Upload</button>
+    <button type="button" class="btn border border-dark btn-default">Delete All</button>
+  </div>
 <style>
 #customers {
     font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
@@ -36,19 +41,17 @@ Data overview
   <tr>
     <th>Filename</th>
     <th>Last update</th>
-      <th>Link for Update</th>
+      <th>Delete</th>
   </tr>
     {% for key, val in files.items() %}
         <tr>
             <td>{{key}}</td>
             <td>{{val}}</td>
             <td>
-                <a href="/">Testlink</a>
+                <button type="button" class="btn btn-default border border-dark">Delete This!</button>
             </td>
-
         </tr>
 
     {% endfor %}
 </table>
-</html>
 {% endblock %}
