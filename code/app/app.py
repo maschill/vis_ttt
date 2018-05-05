@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 from elasticsearch import Elasticsearch
 from files import filesfromEL
 
@@ -16,6 +16,22 @@ def index():
 def data():
 	return render_template('data.html', files=Files)
 '''
+
+#this is called when clicking the upload button
+@app.route('/_upload_button')
+def _upload_button():
+	arg = request.args.get('student_id', 0)
+	print(arg)
+	return jsonify(status="success")
+
+#this is called when clicking the delete all button
+@app.route('/_delete_button')
+def _delete_button():
+	arg = request.args.get('student_id', 0)
+	print(arg)
+	return jsonify(status="success")
+
+
 @app.route('/data', methods=['GET','POST'])
 def data():
 	q = request.args.get('q')
