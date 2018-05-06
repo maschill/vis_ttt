@@ -9,6 +9,7 @@
     <label for="q">search filename: </label><input type="text" name ="q" id ="q" value="{{q}}">
     <input class="btn btn-default border border-dark" type="submit" value="search">    
     {{response}}
+    <p style="color:red;"><br>{{message}}</p>
 </form>
 </div>
 <div class="btn-group float-md-right" role="group">
@@ -42,13 +43,17 @@
 <table id="customers">
   <tr>
     <th>Filename</th>
+      <th>Size (kB)</th>
     <th>Last update</th>
       <th>Delete</th>
   </tr>
+    {% set sizeinkB = 0 %}
     {% for key, val in files.items() %}
+        {% set sizeinkB = (val[0]/1000)|round|int %}
         <tr>
             <td>{{key}}</td>
-            <td>{{val}</td>
+            <td>{{sizeinkB}}</td>
+            <td>{{val[1]}}</td>
             <td>
                 <button type="button" class="btn btn-default border border-dark">Delete This!</button>
             </td>

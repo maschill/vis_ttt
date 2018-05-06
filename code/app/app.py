@@ -39,7 +39,11 @@ def data():
 
 	if q is not None:
 		resp = es.search(index='dataoverview', doc_type='doc', body={"query": {"match": {"filename": q}}})
-		return render_template("data.html", q=q, response=resp, files=Files)
+		if resp['hits']['total'] == 0:
+			msg='file does not exist'
+		else:
+			msg='file exists'
+		return render_template("data.html", q=q, response=resp, message=msg,files=Files)
 	else:
 		return render_template('data.html', files=Files)
 

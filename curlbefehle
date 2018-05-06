@@ -40,7 +40,7 @@ curl -XGET  http://localhost:9200/dataoverview/_search?pretty -d '
 {
 "aggs" : {
 "whatever_you_like_here" : {
-"terms" : { "field" : "filename", "size":10000 }
+"terms" : { "field" : "filename"}
 }
 },
 "size" : 0

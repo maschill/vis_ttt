@@ -6,6 +6,7 @@ from elasticsearch import helpers, Elasticsearch
 import csv, json
 import glob, os
 import argparse
+import datetime
 from outlierEvenMore import timeConv
 
 def getfieldnames(file):
@@ -47,7 +48,40 @@ def addDocument(data, meta, INDEX_NAME, TYPE):
 #delete index
 #es.indices.delete(index='test-index', ignore=[400, 404])
 
-#
+#path to folder with data
+#expects meta file in
+# path/to/tsvfiles/../meta/
+# e.g. '/home/lea/Dokumente/FSU/vis_ttt/data/data/*'
+def addFolder(folder, INDEX_NAME='dlrmetadata', TYPE='doc'):
+	files = glob.glob(os.path.join(folder, '*'))
+
+	for data in files:
+
+		meta = data.split('/')
+		#TYPE = meta[-1].split('.')[0]
+		meta[-2] = 'meta'
+		meta[-1] = meta[-1].replace('.tsv', '.json')
+		meta = '/'.join(meta)
+		addDocument(data=data, meta=meta, INDEX_NAME= INDEX_NAME, TYPE=TYPE)
+		now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+		filenames = {'filename': data.split('/')[-1].split('.')[0],
+		             'size': os.path.getsize(data),
+		             'addDate': now,
+		             'updateDate': now}
+		es.index(index='dataoverview', doc_type='doc', body=filenames)
+
+
+#path to single tsv file and meta file
+# e.g. '/home/lea/Dokumente/FSU/vis_ttt/data/data/m_airrsinf.tsv'
+def addFile(tsvfile, jsonmeta, INDEX_NAME='dlrmetadata', TYPE='doc'):
+	# TYPE = args.meta.split('/')[-1].split('.')[0]
+	addDocument(data=tsvfile, meta=jsonmeta, INDEX_NAME=INDEX_NAME, TYPE=TYPE)
+	now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+	filenames = {'filename': args.data.split('/')[-1].split('.')[0],
+	             'size': os.path.getsize(args.data),
+	             'addDate': now,
+	             'updateDate': now}
+	es.index(index='dataoverview', doc_type='doc', body=filenames)
 
 if __name__ == '__main__':
 
