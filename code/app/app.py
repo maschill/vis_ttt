@@ -26,7 +26,7 @@ def _upload_button():
 			print(fi.filename)
 			print(type(fi))
 		for fi2 in fileList2:
-			print(fi2.filename)
+			print(fi2.filename, fi2.content_length)
 		return jsonify(status="success")
 	return jsonify(error='something went wrong')
 
