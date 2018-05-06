@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 from elasticsearch import Elasticsearch
 from files import filesfromEL
+from ... import elasticSearch
 
 es = Elasticsearch([{'host':'localhost','port': 9200}])
 app = Flask(__name__)
@@ -20,6 +21,7 @@ def _upload_button():
 		print('Someone clicked on Upload')
 		fileList = request.files.getlist('file')
 		for fi in fileList:
+			elasticSearch.addFile()
 			print(fi.filename)
 			
 		return jsonify(status="success")
