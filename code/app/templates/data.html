@@ -69,7 +69,7 @@
         <fieldset>
             <label for="file">Data Files: &ensp;</label>
             <input name="file" type="file" multiple directory>
-            
+            <br>
             <label for="file2">Meta Files: &ensp;</label>
             <input name="file2" type="file" multiple directory>            
             <button id="upload-file-btn" class="btn border border-dark btn-default fload-sm-right" type="button">Upload</button>
@@ -93,8 +93,7 @@
                 processData: false,
                 async: false,
                 success: function (data) {
-                    console.log('Success!');
-                    $('#upload-file')[0].reset();
+                    setTimeout(function(){window.location.href = "/data"}, 2000);
                 },
             });
         });

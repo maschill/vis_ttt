@@ -25,11 +25,13 @@ def getConstants(f, data):
 	const['filename'] = f.name
 	return const
 
-def addDocument(data, meta, INDEX_NAME, TYPE):
+def addDocument(data, meta, INDEX_NAME, TYPE, es):
 	# with open(data) as f:
 		#preprocess data
 		# read data
-	metadata = json.load(meta)
+	print('##############################################')
+	meta.seek(0)
+	metadata = json.loads(meta.read().decode('utf-8').replace('\0', ''))
 	fieldnames = getfieldnames(meta, metadata)
 	constants = getConstants(meta, metadata)
 	df = pd.read_csv(data, names=fieldnames, sep='\t')
@@ -75,7 +77,7 @@ def addFolder(folder, INDEX_NAME='dlrmetadata', TYPE='doc'):
 # e.g. '/home/lea/Dokumente/FSU/vis_ttt/data/data/m_airrsinf.tsv'
 def addFile(tsvfile, jsonmeta, INDEX_NAME='dlrmetadata', TYPE='doc'):
 	# TYPE = args.meta.split('/')[-1].split('.')[0]
-	addDocument(data=tsvfile, meta=jsonmeta, INDEX_NAME=INDEX_NAME, TYPE=TYPE)
+	addDocument(data=tsvfile, meta=jsonmeta, INDEX_NAME=INDEX_NAME, TYPE=TYPE, es=es)
 	now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 	filenames = {'filename': args.data.split('/')[-1].split('.')[0],
 	             'size': os.path.getsize(args.data),
@@ -85,12 +87,14 @@ def addFile(tsvfile, jsonmeta, INDEX_NAME='dlrmetadata', TYPE='doc'):
 
 def updateFile(datafile, metafile, filename, es):
 	es.delete_by_query(index='dlrmetadata', doc_type='doc', body={'query': {'match': {'filename': filename}}})
-	addDocument(datafile, metafile, INDEX_NAME='dlrmetadata', TYPE='doc')
+	addDocument(datafile, metafile, INDEX_NAME='dlrmetadata', TYPE='doc', es=es)
 
 	es.delete_by_query(index='dataoverview', doc_type='doc', body={'query': {'match': {'filename': filename}}})
 	now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+	datafile.seek(0)
+	metafile.seek(0)
 	filenames = {'filename': filename.split('.')[0],
-	             'size': len(datafile),
+	             'size': len(datafile.read()),
 	             'addDate': now,
 	             'updateDate': now}
 	es.index(index='dataoverview', doc_type='doc', body=filenames)

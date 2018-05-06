@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, jsonify
 from elasticsearch import Elasticsearch
 from files import filesfromEL
-import sys
+import tempfile
+import sys, json
 
 sys.path.insert(0,'../')
 import  elasticSearch
@@ -26,7 +27,10 @@ def _upload_button():
 		meta_files = request.files.getlist('file2')
 
 		for meta, data in zip(meta_files, data_files):
-			elasticSearch.updateFile(meta, data, meta.filename.split('.')[0], es)
+			fn = meta.filename.split('.')[0]
+			meta.seek(0)
+			data.seek(0)
+			elasticSearch.updateFile(data, meta, fn, es)
 		return jsonify(status="success")
 	return jsonify(status='something went wrong')
 
@@ -43,6 +47,8 @@ def _delete_button():
 
 @app.route('/data', methods=['GET','POST'])
 def data():
+	Files = filesfromEL(es=es)
+
 	q = request.args.get('q')
 	#q = request.form.get('q')
 
