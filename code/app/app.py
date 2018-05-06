@@ -17,9 +17,11 @@ def index():
 def _upload_button():
 	if request.method=='POST':
 		#arg = request.args.get('student_id', 0)
-		f = request.files['file']
 		print('Someone clicked on Upload')
-		print(f.filename)
+		fileList = request.files.getlist('file')
+		for fi in fileList:
+			print(fi.filename)
+			
 		return jsonify(status="success")
 	return jsonify(error='something went wrong')
 

@@ -68,18 +68,19 @@
 <div class='float-md-right col-md-6'>
     <form id="upload-file" method="post" enctype="multipart/form-data">
         <fieldset>
-            <input name="file" type="file">
+            <input name="file" type="file" multiple directory>
             <button id="upload-file-btn" class="btn border border-dark btn-default" type="button">Upload</button>
         </fieldset>
     </form>
 </div>
-<button type="button" class="btn border border-dark btn-default float-sm-   left" id="delete_button">Delete All</button>
+<button type="button" class="btn border border-dark btn-default float-sm-left" id="delete_button">Delete All</button>
 
 <!-- https://gist.github.com/kholidfu/a9a0bdfac7b334a5a6b0 -->
 <script type="text/javascript">
     $(function () {
         $('#upload-file-btn').click(function () {
             var form_data = new FormData($('#upload-file')[0]);
+            console.log(form_data);
             $.ajax({
                 type: 'POST',
                 url: '/_upload_button',
