@@ -1,44 +1,46 @@
-{% extends "layout.html" %}
-{% block body %}
+{% extends "layout.html" %} {% block body %}
 
 
 <h2>Data Overview</h2>
 <br>
 <div class="float-md-left">
 <form action="/data" method="get" autocomplete="on">
-    <label for="q">search filename: </label><input type="text" name ="q" id ="q" value="{{q}}">
+    <label for="q">search filename:&ensp; </label><input type="text" name ="q" id ="q" value="{{q}}">
     <input class="btn btn-default border border-dark" type="submit" value="search">    
     {{response}}
     <p style="color:red;"><br>{{message}}</p>
 </form>
 </div>
-<div class="btn-group float-md-right" role="group">
-    <button type="button" class="btn border border-dark btn-default" id="upload_button">Upload</button>
-    <button type="button" class="btn border border-dark btn-default" id="delete_button">Delete All</button>
-  </div>
+
+
 <style>
-#customers {
-    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
-    border-collapse: collapse;
-    width: 100%;
-}
+    #customers {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
 
-#customers td, #customers th {
-    border: 1px solid #ddd;
-    padding: 8px;
-}
+    #customers td,
+    #customers th {
+        border: 1px solid #ddd;
+        padding: 8px;
+    }
 
-#customers tr:nth-child(even){background-color: #f2f2f2;}
+    #customers tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
 
-#customers tr:hover {background-color: #ddd;}
+    #customers tr:hover {
+        background-color: #ddd;
+    }
 
-#customers th {
-    padding-top: 12px;
-    padding-bottom: 12px;
-    text-align: left;
-    background-color: #4CAF50;
-    color: white;
-}
+    #customers th {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        text-align: left;
+        background-color: #4CAF50;
+        color: white;
+    }
 </style>
 <table id="customers">
   <tr>
@@ -62,33 +64,47 @@
     {% endfor %}
 </table>
 
+<br>
+<div class='float-md-right col-md-6'>
+    <form id="upload-file" method="post" enctype="multipart/form-data">
+        <fieldset>
+            <input name="file" type="file">
+            <button id="upload-file-btn" class="btn border border-dark btn-default" type="button">Upload</button>
+        </fieldset>
+    </form>
+</div>
+<button type="button" class="btn border border-dark btn-default float-sm-   left" id="delete_button">Delete All</button>
+
+<!-- https://gist.github.com/kholidfu/a9a0bdfac7b334a5a6b0 -->
 <script type="text/javascript">
-    $(function(){
-        alert("jquery loaded");
+    $(function () {
+        $('#upload-file-btn').click(function () {
+            var form_data = new FormData($('#upload-file')[0]);
+            $.ajax({
+                type: 'POST',
+                url: '/_upload_button',
+                data: form_data,
+                contentType: false,
+                cache: false,
+                processData: false,
+                async: false,
+                success: function (data) {
+                    console.log('Success!');
+                    $('#upload-file')[0].reset();
+                },
+            });
+        });
     });
-    
-    $('#upload_button').click(function(){
-        // $.ajax({
-        //   type: 'POST',
-        //   url: "/_upload_button",
-        //   data: {},
-        //   dataType: "text",
-        //   success: function(data){
-        alert("Deleted Student ID ");
-        //            }
-        // });
-    });
-            
-    $("#delete_button").click(function(){
+
+    $("#delete_button").click(function () {
         $.ajax({
             type: 'POST',
             url: "/_delete_button",
             data: {},
             dataType: "text",
-            success: function(){
-                alert("Deleted Student ID ");
+            success: function () {
+                alert("clicked delete");
             }
         });
     });
-    </script>
-{% endblock %}
+</script> {% endblock %}

@@ -11,18 +11,17 @@ print(Files)
 @app.route('/')
 def index():
 	return render_template('home.html')
-'''
-@app.route('/data')
-def data():
-	return render_template('data.html', files=Files)
-'''
 
 #this is called when clicking the upload button
 @app.route('/_upload_button', methods=['GET', 'POST'])
 def _upload_button():
-	#arg = request.args.get('student_id', 0)
-	print('Someone clicked on Upload')
-	return jsonify(status="success")
+	if request.method=='POST':
+		#arg = request.args.get('student_id', 0)
+		f = request.files['file']
+		print('Someone clicked on Upload')
+		print(f.filename)
+		return jsonify(status="success")
+	return jsonify(error='something went wrong')
 
 #this is called when clicking the delete all button
 @app.route('/_delete_button', methods=['GET', 'POST'])
