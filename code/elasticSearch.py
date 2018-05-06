@@ -32,16 +32,15 @@ def addDocument(data, meta, INDEX_NAME, TYPE):
 	metadata = json.load(meta)
 	fieldnames = getfieldnames(meta, metadata)
 	constants = getConstants(meta, metadata)
-
-	df = pd.read_csv(data, names=fieldnames,sep='\t')
-	print(df.head())
+	df = pd.read_csv(data, names=fieldnames, sep='\t')
 	df = timeConv(df)
 		# reader = csv.DictReader(f, fieldnames=fieldnames, delimiter='\t')
 		#helpers.bulk(es, reader, index=INDEX_NAME, doc_type=TYPE)
 		# print('Adding documents to ' + INDEX_NAME + '/' + TYPE)
 	i = 0
-	for row in df.iterrows():
-		data_dict = row[i].to_dict().update(constants)
+	for idx, row in df.iterrows():
+		data_dict = row.to_dict()
+		data_dict.update(constants)
 		es.index(index=INDEX_NAME, doc_type=TYPE, body=data_dict)
 		i += 1
 	print(data, 'added to elasticsearch index ', INDEX_NAME)

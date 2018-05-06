@@ -55,32 +55,32 @@ def timeConv(dataset):
     num = dataset.select_dtypes(include=[np.number]).columns.values
 
     cols = dataset.shape[1]
-    for i in range(cols):
-        if not i in num :
-            dataset[i] =  pd.to_datetime(dataset[i],errors='ignore')
+    for column in dataset:
+        if column not in num :
+            dataset[column] =  pd.to_datetime(dataset[column], errors='ignore')
 
     return dataset
     
 
 def main():
 
-    with open('indiabetes.csv', 'rb') as csvfile:
-        reader = csv.DictReader(csvfile, fieldnames=None, delimiter=',')
+    #with open('indiabetes.csv', 'rb') as csvfile:
+    #    reader = csv.DictReader(csvfile, fieldnames=None, delimiter=',')
 
     ### switch from deleting to marking
     
-    dataset=pd.read_csv('data/data/m_airrsgtc.tsv',header=None,sep='\t')
-    #print(dataset.describe())
+    dataset=pd.read_csv('../data/data/m_airrsgtc.tsv',sep='\t')
 
-    dataset=markMissesAndOutliers(dataset)
+    #dataset=markMissesAndOutliers(dataset)
         #dataset=delMissesAndOutliers(dataset)
         #dataset=replaceMissesMarkOutliers(dataset)
 
     dataset=timeConv(dataset)
 
+    print(dataset.head())
     #print dataset.head(10)
 
-    dataset.to_csv('data/data/m_airrsgtc_temp.tsv', header=False, index=False,sep='\t')
+    #dataset.to_csv('data/data/m_airrsgtc_temp.tsv', header=False, index=False,sep='\t')
 
 if __name__ == "__main__":
     main()
