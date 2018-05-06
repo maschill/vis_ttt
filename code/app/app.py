@@ -1,7 +1,10 @@
 from flask import Flask, render_template, request, jsonify
 from elasticsearch import Elasticsearch
 from files import filesfromEL
-from ... import elasticSearch
+import sys
+
+sys.path.insert(0,'../')
+import  elasticSearch
 
 es = Elasticsearch([{'host':'localhost','port': 9200}])
 app = Flask(__name__)
@@ -19,16 +22,13 @@ def _upload_button():
 	if request.method=='POST':
 		#arg = request.args.get('student_id', 0)
 		print('Someone clicked on Upload')
-		fileList = request.files.getlist('file')
-		fileList2 = request.files.getlist('file2')
-		for fi in fileList:
-			elasticSearch.addFile()
-			print(fi.filename)
-			print(type(fi))
-		for fi2 in fileList2:
-			print(fi2.filename, fi2.content_length)
+		data_files = request.files.getlist('file')
+		meta_files = request.files.getlist('file2')
+
+		for meta, data in zip(meta_files, data_files):
+			elasticSearch.updateFile(meta, data, meta.filename.split('.')[0], es)
 		return jsonify(status="success")
-	return jsonify(error='something went wrong')
+	return jsonify(status='something went wrong')
 
 #this is called when clicking the delete all button
 @app.route('/_delete_button', methods=['GET', 'POST'])

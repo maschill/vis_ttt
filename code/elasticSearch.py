@@ -83,7 +83,7 @@ def addFile(tsvfile, jsonmeta, INDEX_NAME='dlrmetadata', TYPE='doc'):
 	             'updateDate': now}
 	es.index(index='dataoverview', doc_type='doc', body=filenames)
 
-def updateFile(datafile, metafile, filename):
+def updateFile(datafile, metafile, filename, es):
 	es.delete_by_query(index='dlrmetadata', doc_type='doc', body={'query': {'match': {'filename': filename}}})
 	addDocument(datafile, metafile, INDEX_NAME='dlrmetadata', TYPE='doc')
 
