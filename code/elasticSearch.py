@@ -8,41 +8,40 @@ import glob, os
 import argparse
 import datetime
 from outlierEvenMore import timeConv
+import pandas as pd
 
 def getfieldnames(file):
-	with open(file) as f:
-		data = json.load(f)
-		return(tuple(data['columns']))
+	data = json.load(file)
+	return(data['columns'])
 
-def getConstants(file):
-	with open(file) as f:
-		fieldnames = []
-		values = []
-		data = json.load(f)
-		for const in data['constants']:
-			fieldnames += [const['id']]
-			values += [const['value']]
-		const = dict(zip(fieldnames, values))
-		const['filename'] = file.split('/')[-1].split('.')[0]
+def getConstants(f):
+	fieldnames = []
+	values = []
+	data = json.load(f)
+	for const in data['constants']:
+		fieldnames += [const['id']]
+		values += [const['value']]
+	const = dict(zip(fieldnames, values))
+	const['filename'] = f.filename
 	return const
 
 def addDocument(data, meta, INDEX_NAME, TYPE):
-	with open(data) as f:
+	# with open(data) as f:
 		#preprocess data
-		#f = timeConv(f)
-
 		# read data
-		fieldnames = getfieldnames(meta)
-		constants = getConstants(meta)
-		reader = csv.DictReader(f, fieldnames=fieldnames, delimiter='\t')
+	fieldnames = getfieldnames(meta)
+	constants = getConstants(meta)
+
+	df = pd.read_csv(f,names=fieldnames,sep='\t')
+	df = timeConv(df)
+		# reader = csv.DictReader(f, fieldnames=fieldnames, delimiter='\t')
 		#helpers.bulk(es, reader, index=INDEX_NAME, doc_type=TYPE)
-		print('Adding documents to ' + INDEX_NAME + '/' + TYPE)
-		i = 0
-		for row in reader:
-			row.update(constants)
-			print(row)
-			es.index(index=INDEX_NAME, doc_type=TYPE, body=row)
-			i += 1
+		# print('Adding documents to ' + INDEX_NAME + '/' + TYPE)
+	i = 0
+	for row in df.iterrows():
+		data_dict = row[i].to_dict().update(constants)
+		es.index(index=INDEX_NAME, doc_type=TYPE, body=data_dict)
+		i += 1
 	print(data, 'added to elasticsearch index ', INDEX_NAME)
 
 #delete index

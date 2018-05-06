@@ -19,16 +19,22 @@ def _upload_button():
 		#arg = request.args.get('student_id', 0)
 		print('Someone clicked on Upload')
 		fileList = request.files.getlist('file')
+		fileList2 = request.files.getlist('file2')
 		for fi in fileList:
 			print(fi.filename)
-			
+			print(type(fi))
+		for fi2 in fileList2:
+			print(fi2.filename)
 		return jsonify(status="success")
 	return jsonify(error='something went wrong')
 
 #this is called when clicking the delete all button
 @app.route('/_delete_button', methods=['GET', 'POST'])
 def _delete_button():
-	#arg = request.args.get('student_id', 0)
+	#delete index....
+	#es.indices.delete(index='dataoverview', ignore=[400, 404])
+	#then rebuild
+
 	print('Someone clicked on DELETE ALL')
 	return jsonify(status="success")
 
