@@ -3,3 +3,4 @@ data/*
 code/app/__pycache__/*
 code/app/files.pyc
 code/__pycache__/*
+code/elasticSearch.py.orig
