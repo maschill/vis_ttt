@@ -10,29 +10,31 @@ import datetime
 from outlierEvenMore import timeConv
 import pandas as pd
 
-def getfieldnames(file):
-	data = json.load(file)
+def getfieldnames(f, data):
+	#data = json.load(f)
 	return(data['columns'])
 
-def getConstants(f):
+def getConstants(f, data):
 	fieldnames = []
 	values = []
-	data = json.load(f)
+	#data = json.load(f)
 	for const in data['constants']:
 		fieldnames += [const['id']]
 		values += [const['value']]
 	const = dict(zip(fieldnames, values))
-	const['filename'] = f.filename
+	const['filename'] = f.name
 	return const
 
 def addDocument(data, meta, INDEX_NAME, TYPE):
 	# with open(data) as f:
 		#preprocess data
 		# read data
-	fieldnames = getfieldnames(meta)
-	constants = getConstants(meta)
+	metadata = json.load(meta)
+	fieldnames = getfieldnames(meta, metadata)
+	constants = getConstants(meta, metadata)
 
-	df = pd.read_csv(f,names=fieldnames,sep='\t')
+	df = pd.read_csv(data, names=fieldnames,sep='\t')
+	print(df.head())
 	df = timeConv(df)
 		# reader = csv.DictReader(f, fieldnames=fieldnames, delimiter='\t')
 		#helpers.bulk(es, reader, index=INDEX_NAME, doc_type=TYPE)
@@ -82,6 +84,21 @@ def addFile(tsvfile, jsonmeta, INDEX_NAME='dlrmetadata', TYPE='doc'):
 	             'updateDate': now}
 	es.index(index='dataoverview', doc_type='doc', body=filenames)
 
+def updateFile(datafile, metafile, filename):
+	es.delete_by_query(index='dlrmetadata', doc_type='doc', body={'query': {'match': {'filename': filename}}})
+	addDocument(datafile, metafile, INDEX_NAME='dlrmetadata', TYPE='doc')
+
+	es.delete_by_query(index='dataoverview', doc_type='doc', body={'query': {'match': {'filename': filename}}})
+	now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+	filenames = {'filename': filename.split('.')[0],
+	             'size': len(datafile),
+	             'addDate': now,
+	             'updateDate': now}
+	es.index(index='dataoverview', doc_type='doc', body=filenames)
+
+	#q = {"_script": {"updateDate": now},"query": {"match": {"filename": filename}}}
+	#es.update_by_query(index='dataoverview', doc_type='doc', body=q)
+
 if __name__ == '__main__':
 
 	parser = argparse.ArgumentParser(description='Create index and load tsv file in elaseicsearch.')
@@ -109,13 +126,14 @@ if __name__ == '__main__':
 		files = glob.glob(os.path.join(args.folder, '*'))
 
 		for data in files:
-
 			meta = data.split('/')
 			#TYPE = meta[-1].split('.')[0]
 			meta[-2] = 'meta'
 			meta[-1] = meta[-1].replace('.tsv', '.json')
 			meta = '/'.join(meta)
-			addDocument(data=data, meta=meta, INDEX_NAME= args.INDEX_NAME, TYPE=TYPE)
+			datafile = open(data)
+			metafile = open(meta)
+			addDocument(data=datafile, meta=metafile, INDEX_NAME= args.INDEX_NAME, TYPE=TYPE)
 			now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 			filenames = {'filename': data.split('/')[-1].split('.')[0],
 			             'size': os.path.getsize(data),
@@ -124,7 +142,9 @@ if __name__ == '__main__':
 			es.index(index='dataoverview', doc_type='doc', body=filenames)
 	else:
 		#TYPE = args.meta.split('/')[-1].split('.')[0]
-		addDocument(data=args.data, meta=args.meta, INDEX_NAME=args.INDEX_NAME, TYPE=TYPE)
+		datafile = open(args.data)
+		metafile = open(args.meta)
+		addDocument(data=datafile, meta=metafile, INDEX_NAME=args.INDEX_NAME, TYPE=TYPE)
 		now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 		filenames = {'filename': args.data.split('/')[-1].split('.')[0],
 		             'size': os.path.getsize(args.data),
