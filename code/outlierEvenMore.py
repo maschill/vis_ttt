@@ -19,19 +19,19 @@ def delMissesAndOutliers(dataset):
 def markMissesAndOutliers(dataset):
 
     num = dataset.select_dtypes(include=[np.number]).columns.values
-    dataset[dataset.shape[1]]=True
+    dataset['noOutlier']=True
 
     for i in num:
-        dataset[dataset.shape[1]-1] = np.where(dataset[dataset.shape[1]-1]==True, \
+        dataset['noOutlier'] = np.where(dataset['noOutlier']==True, \
                                                ((dataset[i]-dataset[i].mean()).abs()/dataset[i].std()<3), False)
 
     miss = np.where(pd.isnull(dataset))[0]
 
-    dataset[dataset.shape[1]] = True
+    dataset['complete'] = True
 
     warnings.simplefilter('ignore')
 
-    dataset[dataset.shape[1]-1][miss] = False
+    dataset['complete'][miss] = False
 
     warnings.simplefilter('default')
 
@@ -64,9 +64,6 @@ def timeConv(dataset):
 
 def main():
 
-    #with open('indiabetes.csv', 'rb') as csvfile:
-    #    reader = csv.DictReader(csvfile, fieldnames=None, delimiter=',')
-
     ### switch from deleting to marking
     
     dataset=pd.read_csv('../data/data/m_airrsgtc.tsv',sep='\t')
@@ -78,7 +75,6 @@ def main():
     dataset=timeConv(dataset)
 
     print(dataset.head())
-    #print dataset.head(10)
 
     #dataset.to_csv('data/data/m_airrsgtc_temp.tsv', header=False, index=False,sep='\t')
 

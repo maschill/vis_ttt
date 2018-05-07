@@ -7,7 +7,7 @@ import csv, json
 import glob, os
 import argparse
 import datetime
-from outlierEvenMore import timeConv
+from outlierEvenMore import timeConv, delMissesAndOutliers, markMissesAndOutliers
 import pandas as pd
 
 def getfieldnames(f, data):
@@ -36,6 +36,7 @@ def addDocument(data, meta, INDEX_NAME, TYPE, es):
 	constants = getConstants(meta, metadata)
 	df = pd.read_csv(data, names=fieldnames, sep='\t')
 	df = timeConv(df)
+	df = markMissesAndOutliers(df)
 		# reader = csv.DictReader(f, fieldnames=fieldnames, delimiter='\t')
 		#helpers.bulk(es, reader, index=INDEX_NAME, doc_type=TYPE)
 		# print('Adding documents to ' + INDEX_NAME + '/' + TYPE)
