@@ -86,10 +86,12 @@ def addFile(tsvfile, jsonmeta, INDEX_NAME='dlrmetadata', TYPE='doc'):
 	es.index(index='dataoverview', doc_type='doc', body=filenames)
 
 def updateFile(datafile, metafile, filename, es):
-	es.delete_by_query(index='dlrmetadata', doc_type='doc', body={'query': {'match': {'filename': filename}}})
+	if es.indices.exists('dlrmetadata'):
+		es.delete_by_query(index='dlrmetadata', doc_type='doc', body={'query': {'match': {'filename': filename}}})
 	addDocument(datafile, metafile, INDEX_NAME='dlrmetadata', TYPE='doc', es=es)
 
-	es.delete_by_query(index='dataoverview', doc_type='doc', body={'query': {'match': {'filename': filename}}})
+	if es.indices.exists('dataoverview'):
+		es.delete_by_query(index='dataoverview', doc_type='doc', body={'query': {'match': {'filename': filename}}})
 	now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 	datafile.seek(0)
 	metafile.seek(0)

@@ -50,7 +50,7 @@
         <th>Last update</th>
         <!-- <th>Delete</th> -->
     </tr>
-    {% set sizeinkB = 0 %} {% for key, val in files.items() %} {% set sizeinkB = (val[0]/1000)|round|int %}
+    {% if files != None %}{% set sizeinkB = 0 %} {% for key, val in files.items() %} {% set sizeinkB = (val[0]/1000)|round|int %}
     <tr>
         <td>{{key}}</td>
         <td>{{sizeinkB}}</td>
@@ -61,6 +61,7 @@
     </tr>
 
     {% endfor %}
+    {% endif %}
 </table>
 
 <br>
@@ -107,6 +108,18 @@
             dataType: "text",
             success: function () {
                 alert("clicked delete");
+            }
+        });
+    });
+
+    $("#upload-file-btn").click(function () {
+        $.ajax({
+            type: 'POST',
+            url: "/_upload_button",
+            data: {},
+            dataType: "text",
+            success: function () {
+                alert("upload started ...");
             }
         });
     });

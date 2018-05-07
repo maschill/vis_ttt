@@ -38,11 +38,13 @@ def _upload_button():
 @app.route('/_delete_button', methods=['GET', 'POST'])
 def _delete_button():
 	#delete index....
-	es.indices.delete(index=['dataoverview', 'dlrmetadata'], ignore=[400, 404])
+	if es.indices.exists(['dataoverview', 'dlrmetadata']):
+		es.indices.delete(index=['dataoverview', 'dlrmetadata'], ignore=[400, 404])
 	#then rebuild - just update by upload
-
-	print('Someone clicked on DELETE ALL')
-	return jsonify(status="success")
+	Files = filesfromEL(es=es)
+	print('All indexes deleted')
+	return render_template('data.html', files=Files)
+	#return jsonify(status="success")
 
 
 @app.route('/data', methods=['GET','POST'])
@@ -51,14 +53,16 @@ def data():
 
 	q = request.args.get('q')
 	#q = request.form.get('q')
-
-	if q is not None:
-		resp = es.search(index='dataoverview', doc_type='doc', body={"query": {"match": {"filename": q}}})
-		if resp['hits']['total'] == 0:
-			msg='file does not exist'
+	if Files is not None:
+		if q is not None:
+			resp = es.search(index='dataoverview', doc_type='doc', body={"query": {"match": {"filename": q}}})
+			if resp['hits']['total'] == 0:
+				msg='file does not exist'
+			else:
+				msg='file exists'
+			return render_template("data.html", q=q, response=resp, message=msg,files=Files)
 		else:
-			msg='file exists'
-		return render_template("data.html", q=q, response=resp, message=msg,files=Files)
+			return render_template('data.html', files=Files)
 	else:
 		return render_template('data.html', files=Files)
 

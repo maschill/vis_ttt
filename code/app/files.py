@@ -17,11 +17,14 @@ def files():
 	return orderedfilenames
 
 def filesfromEL(es):
-	res = es.search(index='dataoverview', body={"query": {"match_all": {}}, "_source": ["filename","size","updateDate"]})
-	filenames = [x['_source']['filename'] for x in res['hits']['hits']]
-	size = [x['_source']['size'] for x in res['hits']['hits']]
-	update = [x['_source']['updateDate'] for x in res['hits']['hits']]
-	orderedfilenames = collections.OrderedDict(sorted(zip(filenames, zip(size, update))))
+	if es.indices.exists('dataoverview'):
+		res = es.search(index='dataoverview', body={"query": {"match_all": {}}, "_source": ["filename","size","updateDate"]})
+		filenames = [x['_source']['filename'] for x in res['hits']['hits']]
+		size = [x['_source']['size'] for x in res['hits']['hits']]
+		update = [x['_source']['updateDate'] for x in res['hits']['hits']]
+		orderedfilenames = collections.OrderedDict(sorted(zip(filenames, zip(size, update))))
+	else:
+		orderedfilenames = None
 	return orderedfilenames
 
 if __name__== '__main__':
