@@ -38,8 +38,8 @@ def _upload_button():
 @app.route('/_delete_button', methods=['GET', 'POST'])
 def _delete_button():
 	#delete index....
-	#es.indices.delete(index='dataoverview', ignore=[400, 404])
-	#then rebuild
+	es.indices.delete(index=['dataoverview', 'dlrmetadata'], ignore=[400, 404])
+	#then rebuild - just update by upload
 
 	print('Someone clicked on DELETE ALL')
 	return jsonify(status="success")
