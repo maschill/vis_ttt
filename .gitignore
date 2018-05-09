@@ -1,6 +1,5 @@
 data/*
 .idea/*
-code/app/__pycache__/*
 code/app/files.pyc
-code/__pycache__/*
+**/__pycache__/*
 code/elasticSearch.py.orig
