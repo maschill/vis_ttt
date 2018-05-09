@@ -4,11 +4,14 @@ from files import filesfromEL
 import tempfile
 import sys, json
 
-sys.path.insert(0,'../')
-import  elasticSearch
-
 es = Elasticsearch([{'host':'localhost','port': 9200}])
 app = Flask(__name__)
+
+from api import bp as api_bp
+app.register_blueprint(api_bp, url_prefix='/api')
+
+sys.path.insert(0,'../')
+import  elasticSearch
 
 Files = filesfromEL(es=es)
 print(Files)
