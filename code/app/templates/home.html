@@ -3,4 +3,94 @@
 {% block body %}
 <h1>Home - Analytics - Visualization</h1>
 <p>Home - Analytics - Visualization</p>
+
+<button type="button" class="btn border border-dark btn-default float-sm-right" id="data_request_btn">Request Mock Data</button>
+
+<p id="dyn_block"> Start Content</p>
+<br>
+<label id="slider_label" for="slider">Min Column 2: 0</label><br>
+<input type="range", id="slider", class="span2", value="0", min="0", max="15", data-slider-step="1" > </input>
+<br>
+<br>
+<br>
+<div class="dropdown">
+    <div>
+        <label for="filter_dropdown">Select color:</label>
+        <select class="form-control" id="colors" name "colors"> 
+            {% for level in levels %}
+            <option value={{ level }}>{{ level }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+<br>
+<br>
+<br>
+
+
+
+<table id="testTable" class="table table-striped">
+    <thead>
+        <tr class="thead-dark">
+            <th>Column 1</th>
+            <th>Column 2</th>   
+            <th>Column 3</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>value 1</td>
+            <td>value 2</td>
+            <td>value 3</td>
+        </tr>
+    </tbody>
+
+</table>
+
+<script type="text/javascript">
+
+    $(function() {
+        $("#slider").change(function(){
+            var valu = $("#slider").val();
+            $("#slider_label").html("Min Column 2: "+valu);
+            console.log(valu);
+        });
+        $("#data_request_btn").click(function(){
+            $("#dyn_block").html("Working");
+            // var filter_min = ;
+            // var filter_max = ;
+            // var color = ;
+            console.log($("#colors").val());
+            $.ajax({
+                // it needs to be property:value NOT property=value
+                // Post request because we need to send filter values
+                // Mock Request works with both POST and GET
+                type:'POST',
+                url:"/data_servant", 
+                data:JSON.stringify({
+                    colors: $("#colors").val(),
+                    slider_min: $("#slider").val()
+                    }) ,
+                contentType: 'application/json;charset=UTF-8',
+                cache: false,
+                success: function (data) {
+                    console.log('sucessful answer received!');
+                    $("#dyn_block").html(data.content);
+                    $("#testTable tbody").empty();
+                    $.each(data.col1, function(i,item){
+                        $("#testTable tbody").append(
+                            "<tr>"
+                                + "<td>" + data.col1[i] + "</td>"
+                                + "<td>" + data.col2[i] + "</td>"
+                                + "<td>" + data.col3[i] + "</td>"
+                            + "</tr>"
+                        );
+                    });
+                },
+            });
+        });
+    });
+
+</script>
+
 {% endblock %}

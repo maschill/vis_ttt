@@ -3,6 +3,12 @@ from elasticsearch import Elasticsearch
 from files import filesfromEL
 import tempfile
 import sys, json
+import pandas as pd
+
+col1 = [''.join(['val', str(x)]) for x in range(10)]
+col2 = [x for x in range(10)]
+col3 = ['red', 'green', 'blue', 'green', 'red', 'blue', 'red', 'yellow', 'red', 'green']
+df = pd.DataFrame({"col1":col1, "col2":col2, "col3":col3})
 
 es = Elasticsearch([{'host':'localhost','port': 9200}])
 app = Flask(__name__)
@@ -18,7 +24,24 @@ print(Files)
 
 @app.route('/')
 def index():
-	return render_template('home.html')
+	levels  = df.col3.unique()
+	min_c2 = df.col2.min()
+	max_c2 =  df.col2.max()
+	return render_template('home.html', levels=levels, min_c2=min_c2, max_c2=max_c2)
+
+@app.route('/data_servant', methods=['POST', 'GET'])
+def data_servant():
+	# if request.method=='POST':
+	# 	f1 = request.args.get('f1')
+	# 	f1 = request.args.get('f2')
+	# 	f1 = request.args.get('f3')
+	json_req = request.get_json()
+	level = json_req["colors"]
+	min_col2 = json_req["slider_min"]
+	print(level)
+	df_res = df[(df.col3 == level) & (df.col2 >= int(min_col2))]
+	return jsonify(status='sucess' , content='this is the new Content', **df_res.to_dict() )
+
 
 #this is called when clicking the upload button
 @app.route('/_upload_button', methods=['GET', 'POST'])
