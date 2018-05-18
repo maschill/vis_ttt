@@ -25,6 +25,7 @@ def getConstants(f, data):
 	const['filename'] = f.name
 	return const
 
+
 def addDocument(data, meta, INDEX_NAME, TYPE, es):
 	# with open(data) as f:
 		#preprocess data
@@ -33,19 +34,28 @@ def addDocument(data, meta, INDEX_NAME, TYPE, es):
 	meta.seek(0)
 	metadata = json.loads(meta.read().decode('utf-8').replace('\0', ''))
 	fieldnames = getfieldnames(meta, metadata)
-	constants = getConstants(meta, metadata)
+	#constants = getConstants(meta, metadata)
 	df = pd.read_csv(data, names=fieldnames, sep='\t')
 	df = timeConv(df)
 	df = markMissesAndOutliers(df)
 		# reader = csv.DictReader(f, fieldnames=fieldnames, delimiter='\t')
 		#helpers.bulk(es, reader, index=INDEX_NAME, doc_type=TYPE)
 		# print('Adding documents to ' + INDEX_NAME + '/' + TYPE)
-	i = 0
-	for idx, row in df.iterrows():
-		data_dict = row.to_dict()
-		data_dict.update(constants)
-		es.index(index=INDEX_NAME, doc_type=TYPE, body=data_dict)
-		i += 1
+	#for idx, row in df.iterrows():
+	#	data_dict = row.to_dict()
+		#data_dict.update(constants)
+	#	es.index(index=INDEX_NAME, doc_type=TYPE, body=data_dict)
+	bulk_action = [
+		{
+			'_op_type': 'index',
+			'_index': INDEX_NAME,
+			'_id': row[0],
+			'_type': TYPE,
+			'_source': row.to_dict()
+		}
+		for idx, row in df.iterrows()
+	]
+	res = helpers.parallel_bulk(es, bulk_action)
 	print(data, 'added to elasticsearch index ', INDEX_NAME)
 
 #delete index
@@ -88,6 +98,7 @@ def addFile(tsvfile, jsonmeta, INDEX_NAME='dlrmetadata', TYPE='doc'):
 
 def updateFile(datafile, metafile, filename, es):
 	if es.indices.exists('dlrmetadata'):
+		print('deleted ', filename)
 		es.delete_by_query(index='dlrmetadata', doc_type='doc', body={'query': {'match': {'filename': filename}}})
 	addDocument(datafile, metafile, INDEX_NAME='dlrmetadata', TYPE='doc', es=es)
 
@@ -139,7 +150,7 @@ if __name__ == '__main__':
 			meta = '/'.join(meta)
 			datafile = open(data)
 			metafile = open(meta)
-			addDocument(data=datafile, meta=metafile, INDEX_NAME= args.INDEX_NAME, TYPE=TYPE)
+			addDocument(data=datafile, meta=metafile, INDEX_NAME= args.INDEX_NAME, TYPE=TYPE, es=es)
 			now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 			filenames = {'filename': data.split('/')[-1].split('.')[0],
 			             'size': os.path.getsize(data),
@@ -150,7 +161,7 @@ if __name__ == '__main__':
 		#TYPE = args.meta.split('/')[-1].split('.')[0]
 		datafile = open(args.data)
 		metafile = open(args.meta)
-		addDocument(data=datafile, meta=metafile, INDEX_NAME=args.INDEX_NAME, TYPE=TYPE)
+		addDocument(data=datafile, meta=metafile, INDEX_NAME=args.INDEX_NAME, TYPE=TYPE, es=es)
 		now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 		filenames = {'filename': args.data.split('/')[-1].split('.')[0],
 		             'size': os.path.getsize(args.data),
