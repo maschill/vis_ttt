@@ -51,13 +51,24 @@ def addDocument(data, meta, INDEX_NAME, TYPE, es):
 			'_index': INDEX_NAME,
 			'_id': row[0],
 			'_type': TYPE,
-			'_source': row.to_dict()
+			'_source': row.to_json()
 		}
 		for idx, row in df.iterrows()
 	]
+
+	success, failed = 0, 0
+
+	# list of errors to be collected is not stats_only
+	errors = []
+
 	for success, info in helpers.parallel_bulk(es, bulk_action):
+		# go through request-reponse pairs and detect failures
 		if not success:
-			print('A document failed:', info)
+			errors.append(info)
+			failed += 1
+		else:
+			success += 1
+	print(success, failed)
 	#helpers.parallel_bulk(es, bulk_action)
 	print(data, 'added to elasticsearch index ', INDEX_NAME)
 
