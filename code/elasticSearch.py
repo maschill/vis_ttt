@@ -11,25 +11,19 @@ from outlierEvenMore import timeConv, delMissesAndOutliers, markMissesAndOutlier
 import pandas as pd
 
 def getfieldnames(f, data):
-	#data = json.load(f)
 	return(data['columns'])
 
 def getConstants(f, data):
 	fieldnames = []
 	values = []
-	#data = json.load(f)
 	for const in data['constants']:
 		fieldnames += [const['id']]
 		values += [const['value']]
 	const = dict(zip(fieldnames, values))
-	const['filename'] = f.name
 	return const
 
 
 def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
-	# with open(data) as f:
-		#preprocess data
-		# read data
 	print('##############################################')
 	meta.seek(0)
 	metadata = json.loads(meta.read().decode('utf-8').replace('\0', ''))
@@ -39,13 +33,6 @@ def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
 	df = timeConv(df)
 	df = markMissesAndOutliers(df)
 	df['filename'] = filename
-		# reader = csv.DictReader(f, fieldnames=fieldnames, delimiter='\t')
-		#helpers.bulk(es, reader, index=INDEX_NAME, doc_type=TYPE)
-		# print('Adding documents to ' + INDEX_NAME + '/' + TYPE)
-	#for idx, row in df.iterrows():
-	#	data_dict = row.to_dict()
-		#data_dict.update(constants)
-	#	es.index(index=INDEX_NAME, doc_type=TYPE, body=data_dict)
 	bulk_action = [
 		{
 			'_op_type': 'index',
@@ -57,36 +44,22 @@ def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
 		for idx, row in df.iterrows()
 	]
 
+	# Bulk upload files and check if successful
 	success, failed = 0, 0
-
-	# list of errors to be collected is not stats_only
-	errors = []
-
 	for success, info in helpers.streaming_bulk(es, bulk_action, chunk_size=10):
-		# go through request-reponse pairs and detect failures
 		if not success:
-			errors.append(info)
 			failed += 1
 		else:
 			success += 1
-	print(success, failed)
-	#helpers.parallel_bulk(es, bulk_action)
-	print(data, 'added to elasticsearch index ', INDEX_NAME)
+	print(data, 'added to elasticsearch index ', INDEX_NAME, '\n',
+	      'success: ', success, 'failed: ', failed)
 
-#delete index
-#es.indices.delete(index='test-index', ignore=[400, 404])
-
-#path to folder with data
-#expects meta file in
-# path/to/tsvfiles/../meta/
-# e.g. '/home/lea/Dokumente/FSU/vis_ttt/data/data/*'
+# Old version to add folder
 def addFolder(folder, INDEX_NAME='dlrmetadata', TYPE='doc'):
 	files = glob.glob(os.path.join(folder, '*'))
 
 	for data in files:
-
 		meta = data.split('/')
-		#TYPE = meta[-1].split('.')[0]
 		meta[-2] = 'meta'
 		meta[-1] = meta[-1].replace('.tsv', '.json')
 		meta = '/'.join(meta)
@@ -97,19 +70,6 @@ def addFolder(folder, INDEX_NAME='dlrmetadata', TYPE='doc'):
 		             'addDate': now,
 		             'updateDate': now}
 		es.index(index='dataoverview', doc_type='doc', body=filenames)
-
-
-#path to single tsv file and meta file
-# e.g. '/home/lea/Dokumente/FSU/vis_ttt/data/data/m_airrsinf.tsv'
-def addFile(tsvfile, jsonmeta, INDEX_NAME='dlrmetadata', TYPE='doc'):
-	# TYPE = args.meta.split('/')[-1].split('.')[0]
-	addDocument(data=tsvfile, meta=jsonmeta, INDEX_NAME=INDEX_NAME, TYPE=TYPE, es=es)
-	now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-	filenames = {'filename': args.data.split('/')[-1].split('.')[0],
-	             'size': os.path.getsize(args.data),
-	             'addDate': now,
-	             'updateDate': now}
-	es.index(index='dataoverview', doc_type='doc', body=filenames)
 
 
 def updateFile(datafile, metafile, filename, es):
@@ -130,10 +90,15 @@ def updateFile(datafile, metafile, filename, es):
 	now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 	datafile.seek(0)
 	metafile.seek(0)
+	print('add constants')
+	#meta.seek(0)
+	metadata = json.loads(metafile.read().decode('utf-8').replace('\0', ''))
+	constants = getConstants(metafile, metadata)
 	filenames = {'filename': filename.split('.')[0],
 	             'size': len(datafile.read()),
 	             'addDate': now,
 	             'updateDate': now}
+	filenames.update(constants)
 	print('add ', filenames, 'to dataoverview')
 	es.index(index='dataoverview', doc_type='doc', body=filenames)
 	print('DONE WITH ', filename)
