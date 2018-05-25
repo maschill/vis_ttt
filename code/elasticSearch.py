@@ -55,7 +55,10 @@ def addDocument(data, meta, INDEX_NAME, TYPE, es):
 		}
 		for idx, row in df.iterrows()
 	]
-	res = helpers.parallel_bulk(es, bulk_action)
+	for success, info in helpers.parallel_bulk(es, bulk_action):
+		if not success:
+			print('A document failed:', info)
+	#helpers.parallel_bulk(es, bulk_action)
 	print(data, 'added to elasticsearch index ', INDEX_NAME)
 
 #delete index
@@ -98,17 +101,18 @@ def addFile(tsvfile, jsonmeta, INDEX_NAME='dlrmetadata', TYPE='doc'):
 
 
 def updateFile(datafile, metafile, filename, es):
-
+	print('START UPLOAD : ', filename)
 	# Index wird angelegt, falls er noch nicht existiert
 	if not es.indices.exists('dlrmetadata'):
-		es.indices.create(index='dlrmetadata', ignore=[400, 404])
+		es.indices.create(index='dlrmetadata')
 
 	# Falls Daten schon existieren und nur upgedated werden sollen, werden sie gelöscht
 	if es.indices.exists('dlrmetadata'):
 		es.delete_by_query(index='dlrmetadata', doc_type='doc', body={'query': {'match': {'filename': filename}}})
-
+	print('add document...')
 	addDocument(datafile, metafile, INDEX_NAME='dlrmetadata', TYPE='doc', es=es)
 
+	print('check indices')
 	if es.indices.exists('dataoverview'):
 		es.delete_by_query(index='dataoverview', doc_type='doc', body={'query': {'match': {'filename': filename}}})
 	now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -118,8 +122,9 @@ def updateFile(datafile, metafile, filename, es):
 	             'size': len(datafile.read()),
 	             'addDate': now,
 	             'updateDate': now}
+	print('add ', filenames, 'to dataoverview')
 	es.index(index='dataoverview', doc_type='doc', body=filenames)
-
+	print('DONE WITH ', filename)
 	#q = {"_script": {"updateDate": now},"query": {"match": {"filename": filename}}}
 	#es.update_by_query(index='dataoverview', doc_type='doc', body=q)
 
