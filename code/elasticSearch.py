@@ -96,10 +96,17 @@ def addFile(tsvfile, jsonmeta, INDEX_NAME='dlrmetadata', TYPE='doc'):
 	             'updateDate': now}
 	es.index(index='dataoverview', doc_type='doc', body=filenames)
 
+
 def updateFile(datafile, metafile, filename, es):
+
+	# Index wird angelegt, falls er noch nicht existiert
+	if not es.indices.exists('dlrmetadata'):
+		es.indices.create(index='dlrmetadata', ignore=[400, 404])
+
+	# Falls Daten schon existieren und nur upgedated werden sollen, werden sie gelöscht
 	if es.indices.exists('dlrmetadata'):
-		print('deleted ', filename)
 		es.delete_by_query(index='dlrmetadata', doc_type='doc', body={'query': {'match': {'filename': filename}}})
+
 	addDocument(datafile, metafile, INDEX_NAME='dlrmetadata', TYPE='doc', es=es)
 
 	if es.indices.exists('dataoverview'):
