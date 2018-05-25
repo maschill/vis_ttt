@@ -26,7 +26,7 @@ def getConstants(f, data):
 	return const
 
 
-def addDocument(data, meta, INDEX_NAME, TYPE, es):
+def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
 	# with open(data) as f:
 		#preprocess data
 		# read data
@@ -38,6 +38,7 @@ def addDocument(data, meta, INDEX_NAME, TYPE, es):
 	df = pd.read_csv(data, names=fieldnames, sep='\t')
 	df = timeConv(df)
 	df = markMissesAndOutliers(df)
+	df['filename'] = filename
 		# reader = csv.DictReader(f, fieldnames=fieldnames, delimiter='\t')
 		#helpers.bulk(es, reader, index=INDEX_NAME, doc_type=TYPE)
 		# print('Adding documents to ' + INDEX_NAME + '/' + TYPE)
@@ -61,7 +62,7 @@ def addDocument(data, meta, INDEX_NAME, TYPE, es):
 	# list of errors to be collected is not stats_only
 	errors = []
 
-	for success, info in helpers.parallel_bulk(es, bulk_action):
+	for success, info in helpers.streaming_bulk(es, bulk_action, chunk_size=10):
 		# go through request-reponse pairs and detect failures
 		if not success:
 			errors.append(info)
@@ -121,7 +122,7 @@ def updateFile(datafile, metafile, filename, es):
 	if es.indices.exists('dlrmetadata'):
 		es.delete_by_query(index='dlrmetadata', doc_type='doc', body={'query': {'match': {'filename': filename}}})
 	print('add document...')
-	addDocument(datafile, metafile, INDEX_NAME='dlrmetadata', TYPE='doc', es=es)
+	addDocument(datafile, metafile, filename, INDEX_NAME='dlrmetadata', TYPE='doc', es=es)
 
 	print('check indices')
 	if es.indices.exists('dataoverview'):

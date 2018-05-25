@@ -18,7 +18,7 @@ def files():
 
 def filesfromEL(es):
 	if es.indices.exists('dataoverview'):
-		res = es.search(index='dataoverview', body={"query": {"match_all": {}}, "_source": ["filename","size","updateDate"]})
+		res = es.search(index='dataoverview', size=200, body={"query": {"match_all": {}}, "_source": ["filename","size","updateDate"]})
 		filenames = [x['_source']['filename'] for x in res['hits']['hits']]
 		size = [x['_source']['size'] for x in res['hits']['hits']]
 		update = [x['_source']['updateDate'] for x in res['hits']['hits']]
