@@ -41,7 +41,7 @@ def get_location(row):
 	for _,item in row.iteritems():
 		if type(item)==str and item.startswith("POLYGON(("):
 			#POLYGON((lon lat, lon2 lat2, ...., lonN latN))
-			location = [[float(x) for x in pair.split(" ")[1:]] for pair in item[9:-2].split(",")]
+			location = [[float(x) for x in pair.strip().split(" ")] for pair in item[9:-2].split(",")]
 			return {"type":"polygon", "coordinates":location}
 		elif type(item)==str and item.startswith("POINT("):
 			location = [float(x) for x in item[6:-1].split(" ")]
