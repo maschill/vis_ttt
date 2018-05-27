@@ -37,16 +37,18 @@ def filter_data():
 		]
 	}
 
-	if match['mission0'] != '':	
-		query["match"] = match
 
-	
+	if match['mission0'] != '':	
+		query["must"].append({"match": {"mission0":request.args.get("mission0")}}) 
+
+	q = {"bool":query}
+
 
 	print('mission: ', request.args.get("mission0"))
 	print('q: ', query)
 	print(request.args.get("starttimeMin"))
 
-	resp = es.search(index='dlrmetadata', doc_type='doc', body={"query":{"bool":query}})
+	resp = es.search(index='dlrmetadata', doc_type='doc', body={"query":q}, size=500)
 	return jsonify(resp)
 
 @bp.route('/all', methods=['GET'])
