@@ -25,6 +25,28 @@ def getConstants(f, data):
 	const['filename'] = f.name
 	return const
 
+def get_location(row):
+	# es input format: 
+	# {
+	# 	"type": <type>,
+	# 	"coordinates": <list of coordinates depending on type>
+	# }
+
+	## tsv file format
+	## POLYGON(([list of coordinates])) or
+	## 8 seperate fields giving corners
+	## POINT((coordinates)) or
+	location = []
+
+	for _,item in row.iteritems():
+		if type(item)==str and item.startswith("POLYGON(("):
+			#POLYGON((lon lat, lon2 lat2, ...., lonN latN))
+			location = [[float(x) for x in pair.split(" ")[1:]] for pair in item[9:-2].split(",")]
+			return {"type":"polygon", "coordinates":location}
+		elif type(item)==str and item.startswith("POINT("):
+			location = [float(x) for x in item[6:-1].split(" ")]
+			return {"type": "point", "coordinates":location}
+	return {"type": "point", "coordinates": [0.0,0.0]}
 
 def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
 	# with open(data) as f:
@@ -34,7 +56,7 @@ def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
 	meta.seek(0)
 	metadata = json.loads(meta.read().decode('utf-8').replace('\0', ''))
 	fieldnames = getfieldnames(meta, metadata)
-	#constants = getConstants(meta, metadata)
+	constants = getConstants(meta, metadata)
 	df = pd.read_csv(data, names=fieldnames, sep='\t')
 	df = timeConv(df)
 	df = markMissesAndOutliers(df)
@@ -46,6 +68,8 @@ def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
 	#	data_dict = row.to_dict()
 		#data_dict.update(constants)
 	#	es.index(index=INDEX_NAME, doc_type=TYPE, body=data_dict)
+	if "mission0" in constants:
+		df["mission0"] = constants["mission0"]
 	bulk_action = [
 		{
 			'_op_type': 'index',
@@ -56,7 +80,7 @@ def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
 				'starttime1': row['starttime1'],
 				'stoptime1': row['stoptime1'],
 				'mission0': row['mission0'],
-				'location': 
+				'location': get_location(row)
 			}
 		}
 		for idx, row in df.iterrows()
@@ -132,20 +156,19 @@ def updateFile(datafile, metafile, filename, es):
 					"starttime1":{
 						"type":"date",
 						"format":"yyyy-MM-dd HH:mm:ss.SSS"
-						},
+					},
 					"stoptime1":{
 						"type":"date",
 						"format":"yyyy-MM-dd HH:mm:ss.SSS"
-						},
+					},
 					"mission0":{
 						"type":"text"
-						},
+					},
 					"location":{
 						"type":"geo_shape",
 						"tree":"quadtree",
 						"precision":"1000m",
-						"distance_err_pct":0.001
-						}
+					}
 				}
 			}
 		)
