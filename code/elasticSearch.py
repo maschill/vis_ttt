@@ -42,7 +42,8 @@ def get_location(row):
 		if type(item)==str and item.startswith("POLYGON(("):
 			#POLYGON((lon lat, lon2 lat2, ...., lonN latN))
 			location = [[float(x) for x in pair.strip().split(" ")] for pair in item[9:-2].split(",")]
-			return {"type":"polygon", "coordinates":location}
+			print(location)
+			return {"type":"polygon", "coordinates":[location]}
 		elif type(item)==str and item.startswith("POINT("):
 			location = [float(x) for x in item[6:-1].split(" ")]
 			return {"type": "point", "coordinates":location}
@@ -77,9 +78,9 @@ def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
 			'_id': row[0],
 			'_type': TYPE,
 			'_source': {
-				'starttime1': row['starttime1'],
-				'stoptime1': row['stoptime1'],
-				'mission0': row['mission0'],
+				#'starttime1': row['starttime1'],
+				#'stoptime1': row['stoptime1'],
+				#'mission0': row['mission0'],
 				'location': get_location(row)
 			}
 		}
@@ -154,20 +155,17 @@ def updateFile(datafile, metafile, filename, es):
 			body={
 				"properties":{
 					"starttime1":{
-						"type":"date",
-						"format":"yyyy-MM-dd HH:mm:ss.SSS"
+						"type":"date"
 					},
 					"stoptime1":{
-						"type":"date",
-						"format":"yyyy-MM-dd HH:mm:ss.SSS"
+						"type":"date"
 					},
 					"mission0":{
 						"type":"text"
 					},
 					"location":{
 						"type":"geo_shape",
-						"tree":"quadtree",
-						"precision":"1000m",
+						"tree":"quadtree"
 					}
 				}
 			}
