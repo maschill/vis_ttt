@@ -82,7 +82,9 @@
 <!-- https://gist.github.com/kholidfu/a9a0bdfac7b334a5a6b0 -->
 <script type="text/javascript">
     $(function () {
+        $("body").css("cursor", "default");
         $('#upload-file-btn').click(function () {
+            $("html").css("cursor", "wait");
             var form_data = new FormData($('#upload-file, #upload-file2')[0]);
             console.log(form_data);
             $.ajax({
@@ -94,6 +96,8 @@
                 processData: false,
                 async: false,
                 success: function (data) {
+                    alert("upload finished!");
+                    $("body").css("cursor", "default");
                     setTimeout(function(){window.location.href = "/data"}, 2000);
                 },
             });
@@ -107,20 +111,24 @@
             data: {},
             dataType: "text",
             success: function () {
-                alert("clicked delete");
+                alert("deleted index");
+                setTimeout(function(){window.location.href = "/data"}, 2000);
             }
         });
     });
 
-    $("#upload-file-btn").click(function () {
-        $.ajax({
-            type: 'POST',
-            url: "/_upload_button",
-            data: {},
-            dataType: "text",
-            success: function () {
-                alert("upload started ...");
-            }
-        });
-    });
+    // $("#upload-file-btn").click(function () {
+    //     $("html").css("cursor", "progress");
+    //     $.ajax({
+    //         type: 'POST',
+    //         url: "/_upload_button",
+    //         data: {},
+    //         dataType: "text",
+    //         success: function () {
+    //             alert("upload finished!");
+    //             $("body").css("cursor", "default");
+    //             setTimeout(function(){window.location.href = "/data"}, 1000)
+    //         }
+    //     });
+    // });
 </script> {% endblock %}

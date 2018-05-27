@@ -12,7 +12,7 @@ import pandas as pd
 
 def getfieldnames(f, data):
 	#data = json.load(f)
-	return(data['columns'])
+	return [w.replace('.','') for w in  data['columns']]
 
 def getConstants(f, data):
 	fieldnames = []
@@ -52,7 +52,12 @@ def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
 			'_index': INDEX_NAME,
 			'_id': row[0],
 			'_type': TYPE,
-			'_source': row.to_json()
+			'_source': {
+				'starttime1': row['starttime1'],
+				'stoptime1': row['stoptime1'],
+				'mission0': row['mission0'],
+				'location': 
+			}
 		}
 		for idx, row in df.iterrows()
 	]
@@ -62,13 +67,15 @@ def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
 	# list of errors to be collected is not stats_only
 	errors = []
 
-	for success, info in helpers.streaming_bulk(es, bulk_action, chunk_size=10):
+	for success_, info in helpers.streaming_bulk(es, bulk_action, chunk_size=10):
 		# go through request-reponse pairs and detect failures
-		if not success:
+		if not success_:	
 			errors.append(info)
 			failed += 1
 		else:
 			success += 1
+
+	print(errors)
 	print(success, failed)
 	#helpers.parallel_bulk(es, bulk_action)
 	print(data, 'added to elasticsearch index ', INDEX_NAME)
@@ -117,6 +124,31 @@ def updateFile(datafile, metafile, filename, es):
 	# Index wird angelegt, falls er noch nicht existiert
 	if not es.indices.exists('dlrmetadata'):
 		es.indices.create(index='dlrmetadata')
+		es.indices.put_mapping(
+			index='dlrmetadata', 
+			doc_type='doc',
+			body={
+				"properties":{
+					"starttime1":{
+						"type":"date",
+						"format":"yyyy-MM-dd HH:mm:ss.SSS"
+						},
+					"stoptime1":{
+						"type":"date",
+						"format":"yyyy-MM-dd HH:mm:ss.SSS"
+						},
+					"mission0":{
+						"type":"text"
+						},
+					"location":{
+						"type":"geo_shape",
+						"tree":"quadtree",
+						"precision":"1000m",
+						"distance_err_pct":0.001
+						}
+				}
+			}
+		)
 
 	# Falls Daten schon existieren und nur upgedated werden sollen, werden sie gelöscht
 	if es.indices.exists('dlrmetadata'):
