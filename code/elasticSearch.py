@@ -40,9 +40,7 @@ def get_location(row):
 		if type(item)==str and item.startswith("POLYGON(("):
 			#POLYGON((lon lat, lon2 lat2, ...., lonN latN))
 			location = [[float(x) for x in pair.strip().split(" ")] for pair in item[9:-2].split(",")]
-			print(location)
-			return {"type": "polygon", "coordinates": [location]}
-			#return {"type":"polygon", "coordinates":[[[1.0,1.0], [1.0,10.0], [10.0, 10.0], [10.0,1.0], [1.0, 1.0]]]}
+			return {"type":"polygon", "coordinates":[location]}
 		elif type(item)==str and item.startswith("POINT("):
 			location = [float(x) for x in item[6:-1].split(" ")]  
 			return {"type": "point", "coordinates":[location]}
@@ -122,6 +120,10 @@ def updateFile(datafile, metafile, filename, es):
 			index='dlrmetadata', 
 			doc_type='doc',
 			body={
+				"settings": {
+					"number_of_shards": 1,
+					"number_of_replicas": 0,
+				},
 				"properties":{
 					"starttime1":{
 						"type":"date",
