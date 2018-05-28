@@ -41,7 +41,9 @@ def filter_data():
 				"location": {
 					"shape": {
 						"type": "point",
-						"coordinates": [request.args.get('longitude'),request.args.get('latitude')]
+						"coordinates": [float(request.args.get('longitude').replace('_', '.')),
+						                float(request.args.get('latitude').replace('_', '.'))
+						                ]
 						#"coordinates": [15.0,15.0]
 						#"type": "polygon",
 						#"coordinates": [[[1.0, 1.0], [3.0, 3.0], [10.0,10.0], [15.0,15.0], [1.0,1.0]]]
