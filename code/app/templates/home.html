@@ -2,6 +2,7 @@
 
 {% block body %}
 <h1>Home - Analytics - Visualization</h1>
+<h1>Also: Best UX by far!</h1>
 <p>Home - Analytics - Visualization</p>
 
 <button type="button" class="btn border border-dark btn-default float-sm-right" id="data_request_btn">Request Data</button>
@@ -24,6 +25,12 @@
 <input type="text" id="stoptimeMax" value="2020-12-31", class="form_datetime form-control col-md-4 float-sm-right" />
 <br><br><br>
 
+
+<label for="laditude">Laditude (use "_" instead of floating point)</label>
+<input type="text" id="laditude" value="0_000", class="form_datetime form-control col-md-4 float-sm-right" />
+<br><br>
+<label for="longitude">Longitude (use "_" instead of floating point)</label>
+<input type="text" id="longitude" value="0_000", class="form_datetime form-control col-md-4 float-sm-right" />
 <br><br>
 
 <table id="testTable" class="table table-striped">
@@ -56,11 +63,13 @@
                 // Post request because we need to send filter values
                 // Mock Request works with both POST and GET
                 type:'GET',
-                url:"/api/filter?mission0=" +  $("#mission0").val() 
-                            +   "&starttimeMin="+$("#starttimeMin").val()
-                            +   "&starttimeMax=" +$("#starttimeMax").val()
-                            +   "&stoptimeMin="+$("#stoptimeMin").val()
-                            +   "&stoptimeMax=" + $("#stoptimeMax").val(),
+                url:"/api/filter?mission0=" + $("#mission0").val() 
+                            +   "&starttimeMin=" + $("#starttimeMin").val()
+                            +   "&starttimeMax=" + $("#starttimeMax").val()
+                            +   "&stoptimeMin=" + $("#stoptimeMin").val()
+                            +   "&stoptimeMax=" + $("#stoptimeMax").val()
+                            +   "&longitude=" + $("#longitude").val()
+                            +   "&laditude=" + $("#laditude").val(),
                 data:{},
                 contentType: 'application/json;charset=UTF-8',
                 cache: false,
