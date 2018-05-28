@@ -34,11 +34,25 @@ def filter_data():
 		"must":[
 			{"range":{"stoptime1":rang["stoptime1"]}},
 			{"range":{"starttime1": rang["starttime1"]}}
-		]
+		],
+		#Geo shape
+		"filter": {
+			"geo_shape": {
+				"location": {
+					"shape": {
+						"type": "point",
+						"coordinates": [request.args.get('longitude'),request.args.get('latitude')]
+						#"coordinates": [15.0,15.0]
+						#"type": "polygon",
+						#"coordinates": [[[1.0, 1.0], [3.0, 3.0], [10.0,10.0], [15.0,15.0], [1.0,1.0]]]
+					},
+					"relation": "INTERSECTS"
+				}
+			}
+		}
 	}
 
-
-	if match['mission0'] != '':	
+	if match['mission0'] != '':
 		query["must"].append({"match": {"mission0":request.args.get("mission0")}}) 
 
 	q = {"bool":query}
@@ -49,6 +63,7 @@ def filter_data():
 	print(request.args.get("starttimeMin"))
 
 	resp = es.search(index='dlrmetadata', doc_type='doc', body={"query":q}, size=500)
+	print(resp)
 	return jsonify(resp)
 
 @bp.route('/all', methods=['GET'])
