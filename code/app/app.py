@@ -64,8 +64,11 @@ def _upload_button():
 @app.route('/_delete_button', methods=['GET', 'POST'])
 def _delete_button():
 	#delete index....
-	if es.indices.exists(['dataoverview', 'dlrmetadata']):
-		es.indices.delete(index=['dataoverview', 'dlrmetadata'], ignore=[400, 404])
+	if es.indices.exists(['dataoverview']):
+		es.indices.delete(index=['dataoverview'], ignore=[400, 404])
+	
+	if es.indices.exists(['dlrmetadata']):
+		es.indices.delete(index=['dlrmetadata'], ignore=[400, 404])
 	#then rebuild - just update by upload
 	Files = filesfromEL(es=es)
 	print('All indexes deleted')

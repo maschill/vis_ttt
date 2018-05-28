@@ -71,6 +71,7 @@ def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
 	#	es.index(index=INDEX_NAME, doc_type=TYPE, body=data_dict)
 	if "mission0" in constants:
 		df["mission0"] = constants["mission0"]
+
 	bulk_action = [
 		{
 			'_op_type': 'index',
@@ -91,7 +92,7 @@ def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
 
 	# list of errors to be collected is not stats_only
 	errors = []
-
+	# print(bulk_action)
 	for success_, info in helpers.streaming_bulk(es, bulk_action, chunk_size=10):
 		# go through request-reponse pairs and detect failures
 		if not success_:	
@@ -100,7 +101,6 @@ def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
 		else:
 			success += 1
 
-	print(errors)
 	print(success, failed)
 	#helpers.parallel_bulk(es, bulk_action)
 	print(data, 'added to elasticsearch index ', INDEX_NAME)
@@ -122,13 +122,13 @@ def addFolder(folder, INDEX_NAME='dlrmetadata', TYPE='doc'):
 		meta[-2] = 'meta'
 		meta[-1] = meta[-1].replace('.tsv', '.json')
 		meta = '/'.join(meta)
-		addDocument(data=data, meta=meta, INDEX_NAME= INDEX_NAME, TYPE=TYPE)
 		now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 		filenames = {'filename': data.split('/')[-1].split('.')[0],
 		             'size': os.path.getsize(data),
 		             'addDate': now,
 		             'updateDate': now}
 		es.index(index='dataoverview', doc_type='doc', body=filenames)
+		addDocument(data=data, meta=meta, INDEX_NAME= INDEX_NAME, TYPE=TYPE)
 
 
 #path to single tsv file and meta file
@@ -155,17 +155,23 @@ def updateFile(datafile, metafile, filename, es):
 			body={
 				"properties":{
 					"starttime1":{
-						"type":"date"
+						"type":"date",
+						"ignore_malformed":True,
+
 					},
 					"stoptime1":{
-						"type":"date"
+						"type":"date",
+						"ignore_malformed":True,
+
 					},
 					"mission0":{
 						"type":"text"
 					},
 					"location":{
 						"type":"geo_shape",
-						"tree":"quadtree"
+						"tree":"quadtree",
+						"precision":"1000m",
+						"ignore_malformed":True,
 					}
 				}
 			}
