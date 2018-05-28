@@ -54,10 +54,9 @@ def timeConv(dataset):
 
     num = dataset.select_dtypes(include=[np.number]).columns.values
 
-    cols = dataset.shape[1]
     for column in dataset:
         if column not in num :
-            dataset[column] =  pd.to_datetime(dataset[column], errors='ignore')
+            dataset[column] =  pd.to_datetime(dataset[column], format='%Y-%m-%d %H:%M:%S.%f', errors='ignore')
 
     return dataset
     
