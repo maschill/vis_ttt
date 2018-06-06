@@ -116,15 +116,16 @@ def updateFile(datafile, metafile, filename, es):
 	print('START UPLOAD : ', filename)
 	# Index wird angelegt, falls er noch nicht existiert
 	if not es.indices.exists('dlrmetadata'):
-		es.indices.create(index='dlrmetadata')
+		es.indices.create(index='dlrmetadata', body={
+			"settings":{
+				"number_of_shards": 1,
+				"number_of_replicas": 0,
+			},
+		})
 		es.indices.put_mapping(
 			index='dlrmetadata', 
 			doc_type='doc',
 			body={
-				"settings": {
-					"number_of_shards": 1,
-					"number_of_replicas": 0,
-				},
 				"properties":{
 					"starttime1":{
 						"type":"date",
