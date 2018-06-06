@@ -45,7 +45,7 @@ def get_location(row):
 		elif type(item)==str and item.startswith("POINT("):
 			location = [float(x) for x in item[6:-1].split(" ")]  
 			return {"type": "point", "coordinates":[location]}
-	return {"type": "point", "coordinates": [0.0,0.0]}
+		return {"type": "polygon", "coordinates": [[[1.0,1.0],[1.0,10.0],[10.0,10.0],[10.0,1.0],[1.0,1.0]]]}
 
 def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
 	print('##############################################')
@@ -116,12 +116,14 @@ def updateFile(datafile, metafile, filename, es):
 	print('START UPLOAD : ', filename)
 	# Index wird angelegt, falls er noch nicht existiert
 	if not es.indices.exists('dlrmetadata'):
-		es.indices.create(index='dlrmetadata', body={
-			"settings":{
-				"number_of_shards": 1,
-				"number_of_replicas": 0,
-			},
-		})
+		es.indices.create(index='dlrmetadata', 
+			body={
+				"settings": {
+					"number_of_shards": 2,
+					"number_of_replicas": 0,
+				},
+			})
+
 		es.indices.put_mapping(
 			index='dlrmetadata', 
 			doc_type='doc',
