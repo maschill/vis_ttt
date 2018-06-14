@@ -53,6 +53,13 @@
 
 </table>
 
+<p>plot start</p>
+{% for plot in plots %}
+    {% for part in plot %}
+        {{part | safe}}
+    {% endfor %}
+{% endfor %} 
+<p>plot end</p>
 
 <script type="text/javascript">
      $(function() {    

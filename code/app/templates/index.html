@@ -1,16 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "layout.html" %} {% block body %}
+
 <p>check out</p>
 <form action="/" method="get" autocomplete="off">
     <label for="q">update data: </label><input type="text" name ="q" id ="q" value="">
     <input type="submit" value="search">
 
     {{response}}
+    
+   
+    
 </form>
-</body>
-</html>
+<p>this is test text</p>
+
+{% for plot in plots %}
+    {% for part in plot %}
+        {{part | safe}}
+    {% endfor %}
+{% enfor %} 
+
+{% endblock %}
+
