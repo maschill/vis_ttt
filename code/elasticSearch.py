@@ -50,12 +50,16 @@ def get_location(row):
 def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
 	print('##############################################')
 	meta.seek(0)
+	print('metadata load')
 	metadata = json.loads(meta.read().decode('utf-8').replace('\0', ''))
+	print('get fieldnames')
 	fieldnames = getfieldnames(meta, metadata)
+	print('get constants')
 	constants = getConstants(meta, metadata)
-	df = pd.read_csv(data, names=fieldnames, sep='\t')
-	df = timeConv(df)
-	df = markMissesAndOutliers(df)
+	print('read data')
+	df = pd.read_csv(data, names=fieldnames, sep='\t', low_memory=False)
+	#df = timeConv(df)
+	#df = markMissesAndOutliers(df)
 	df['filename'] = filename
 
 		# reader = csv.DictReader(f, fieldnames=fieldnames, delimiter='\t')
@@ -67,26 +71,22 @@ def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
 	#	es.index(index=INDEX_NAME, doc_type=TYPE, body=data_dict)
 	if "mission0" in constants:
 		df["mission0"] = constants["mission0"]
-
+	print('DF PREPARED')
 	bulk_action = [
 		{
 			'_op_type': 'index',
 			'_index': INDEX_NAME,
 			'_id': row[0],
 			'_type': TYPE,
-			'_source': {
-				'starttime1': row['starttime1'],
-				'stoptime1': row['stoptime1'],
-				'mission0': row['mission0'],
-				'location': get_location(row)
-			}
+			'_source': row.to_json()
+				#'location': get_location(row)
 		}
 		for idx, row in df.iterrows()
 	]
 
 	# Bulk upload files and check if successful
 	success, failed = 0, 0
-	for success, info in helpers.streaming_bulk(es, bulk_action, chunk_size=10):
+	for success, info in helpers.parallel_bulk(es, bulk_action, chunk_size=10):
 		if not success:
 			failed += 1
 		else:
@@ -94,63 +94,67 @@ def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
 	print(data, 'added to elasticsearch index ', INDEX_NAME, '\n',
 	      'success: ', success, 'failed: ', failed)
 
-# Old version to add folder
-def addFolder(folder, INDEX_NAME='dlrmetadata', TYPE='doc'):
-	files = glob.glob(os.path.join(folder, '*'))
-
-	for data in files:
-		meta = data.split('/')
-		meta[-2] = 'meta'
-		meta[-1] = meta[-1].replace('.tsv', '.json')
-		meta = '/'.join(meta)
-		now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-		filenames = {'filename': data.split('/')[-1].split('.')[0],
-		             'size': os.path.getsize(data),
-		             'addDate': now,
-		             'updateDate': now}
-		es.index(index='dataoverview', doc_type='doc', body=filenames)
-		addDocument(data=data, meta=meta, INDEX_NAME= INDEX_NAME, TYPE=TYPE)
-
-
 def updateFile(datafile, metafile, filename, es):
 	print('START UPLOAD : ', filename)
+
+	datafile.seek(0)
+	metafile.seek(0)
+	metadata = json.loads(metafile.read().decode('utf-8').replace('\0', ''))
+
 	# Index wird angelegt, falls er noch nicht existiert
 	if not es.indices.exists('dlrmetadata'):
-		es.indices.create(index='dlrmetadata', 
-			body={
+		dlrmetadatabody = {
 				"settings": {
-					"number_of_shards": 2,
+					"number_of_shards": 1,
 					"number_of_replicas": 0,
 				},
-			})
-
-		es.indices.put_mapping(
-			index='dlrmetadata', 
-			doc_type='doc',
-			body={
-				"properties":{
-					"starttime1":{
-						"type":"date",
-						"ignore_malformed":True,
-
-					},
-					"stoptime1":{
-						"type":"date",
-						"ignore_malformed":True,
-
-					},
-					"mission0":{
-						"type":"text"
-					},
-					"location":{
-						"type":"geo_shape",
-						"tree":"quadtree",
-						"precision":"1000m",
-						"ignore_malformed":True,
+				"mappings":{
+					"doc":{
+						"properties":{
+						}
 					}
 				}
+		}
+		column_types_dict = {
+			"GeoObject": {
+				"type": "geo_shape",
+				"tree": "quadtree",
+				"precision": "1000m",
+				"distance_error_pct": 0.001,
+				"ignore_malformed": True
+			},
+			"Date": {
+				"type": "date",
+				"format": "yyyy-MM-dd HH:mm:ss.SSS",
+			},
+			"Double": {
+				"type": "double",
+			},
+			"Integer": {
+				"type": "integer",
+			},
+			"Character": {
+				"type": "text",
+			},
+			"Identifier": {
+				"type": "keyword",
+			},
+			"Boolean": {
+				"type": "boolean",
+			},
+			"Text": {
+				"type": "text",
 			}
-		)
+		}
+
+		coldesc = json.load(open('/home/lea/Dokumente/FSU/vis_ttt/data/meta/_columnDescription.json'))
+		for col in coldesc:
+			if 'id' in col:
+				column_type = col['type']
+				dlrmetadatabody['mappings']['doc']['properties'][str(col['id'])] = column_types_dict[column_type]
+
+		print('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', '\n', dlrmetadatabody, '\n', 'XXXXXXXXXXXXXXXXXXXXXXXXXXX')
+		es.indices.create(index='dlrmetadata', body=dlrmetadatabody)
 
 	# Falls Daten schon existieren und nur upgedated werden sollen, werden sie gelöscht
 	if es.indices.exists('dlrmetadata'):
@@ -162,11 +166,7 @@ def updateFile(datafile, metafile, filename, es):
 	if es.indices.exists('dataoverview'):
 		es.delete_by_query(index='dataoverview', doc_type='doc', body={'query': {'match': {'filename': filename}}})
 	now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-	datafile.seek(0)
-	metafile.seek(0)
-	print('add constants')
-	#meta.seek(0)
-	metadata = json.loads(metafile.read().decode('utf-8').replace('\0', ''))
+
 	constants = getConstants(metafile, metadata)
 	filenames = {'filename': filename.split('.')[0],
 	             'size': len(datafile.read()),
@@ -176,8 +176,6 @@ def updateFile(datafile, metafile, filename, es):
 	print('add ', filenames, 'to dataoverview')
 	es.index(index='dataoverview', doc_type='doc', body=filenames)
 	print('DONE WITH ', filename)
-	#q = {"_script": {"updateDate": now},"query": {"match": {"filename": filename}}}
-	#es.update_by_query(index='dataoverview', doc_type='doc', body=q)
 
 if __name__ == '__main__':
 
