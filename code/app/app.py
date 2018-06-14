@@ -10,7 +10,7 @@ col2 = [x for x in range(10)]
 col3 = ['red', 'green', 'blue', 'green', 'red', 'blue', 'red', 'yellow', 'red', 'green']
 df = pd.DataFrame({"col1":col1, "col2":col2, "col3":col3})
 
-es = Elasticsearch([{'host':'localhost','port': 9200}])
+es = Elasticsearch([{'host':'localhost','port': 9200}], timeout=1000)
 app = Flask(__name__)
 
 from api import bp as api_bp
