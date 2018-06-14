@@ -47,33 +47,29 @@ def get_location(row):
 			return {"type": "point", "coordinates":[location]}
 		return {"type": "polygon", "coordinates": [[[1.0,1.0],[1.0,10.0],[10.0,10.0],[10.0,1.0],[1.0,1.0]]]}
 
-def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
-	print('##############################################')
-	meta.seek(0)
-	print('metadata load')
-	metadata = json.loads(meta.read().decode('utf-8').replace('\0', ''))
-	print('get fieldnames')
-	fieldnames = getfieldnames(meta, metadata)
-	print('get constants')
-	constants = getConstants(meta, metadata)
-	print('read data')
-	df = pd.read_csv(data, names=fieldnames, sep='\t', low_memory=False)
-	#df = timeConv(df)
-	#df = markMissesAndOutliers(df)
-	df['filename'] = filename
+def clean_row(row):
+	r = []
+	for idx,item in row.iteritems():
+		if type(item)==str and item.startswith("POLYGON(("):
+			row[idx].replace('N(', 'N (')
 
-		# reader = csv.DictReader(f, fieldnames=fieldnames, delimiter='\t')
-		#helpers.bulk(es, reader, index=INDEX_NAME, doc_type=TYPE)
-		# print('Adding documents to ' + INDEX_NAME + '/' + TYPE)
-	#for idx, row in df.iterrows():
-	#	data_dict = row.to_dict()
-		#data_dict.update(constants)
-	#	es.index(index=INDEX_NAME, doc_type=TYPE, body=data_dict)
-	if "mission0" in constants:
-		df["mission0"] = constants["mission0"]
-	print('DF PREPARED')
-	bulk_action = [
-		{
+			#POLYGON((lon lat, lon2 lat2, ...., lonN latN))
+			#location = [[float(x) for x in pair.strip().split(" ")] for pair in item[9:-2].split(",")]
+			#return {"type":"polygon", "coordinates":[location]}
+			#return {"type": "polygon", "coordinates": [[[1.0,1.0],[1.0,10.0],[10.0,10.0],[10.0,1.0],[1.0,1.0]]]}
+		elif type(item)==str and item.startswith("POINT("):
+			row[idx].replace('T(', 'T (')
+			#location = [float(x) for x in item[6:-1].split(" ")]
+			#return {"type": "point", "coordinates":[location]}
+		#return {"type": "polygon", "coordinates": [[[1.0,1.0],[1.0,10.0],[10.0,10.0],[10.0,1.0],[1.0,1.0]]]}
+		return row
+
+
+def bulk_action(df, INDEX_NAME, TYPE):
+	for idx, row in df.iterrows():
+		row = clean_row(row)
+		print(idx, ': ' , row)
+		yield {
 			'_op_type': 'index',
 			'_index': INDEX_NAME,
 			'_id': row[0],
@@ -81,12 +77,37 @@ def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
 			'_source': row.to_json()
 				#'location': get_location(row)
 		}
-		for idx, row in df.iterrows()
-	]
 
+def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
+	print('##############################################')
+	meta.seek(0)
+	print('metadata load')
+	metadata = json.loads(meta.read().decode('utf-8').replace('\0', ''))
+	print('get fieldnames')
+	meta.seek(0)
+	fieldnames = getfieldnames(meta, metadata)
+	print('get constants')
+	meta.seek(0)
+	constants = getConstants(meta, metadata)
+	print('read data')
+	df = pd.read_csv(data, names=fieldnames, sep='\t', low_memory=False)
+	df = timeConv(df)
+	df = markMissesAndOutliers(df)
+	df['filename'] = filename
+	if "mission0" in constants:
+		df["mission0"] = constants["mission0"]
+	print('DF PREPARED')
+
+	for idx in df.columns:
+		if type(df[idx][0]) == str and df[idx][0].startswith("POLYGON(("):
+			df[idx] = df[idx].apply(lambda x: x.replace("POLYGON((", "POLYGON (("))
+		if type(df[idx][0]) == str and df[idx][0].startswith("POINT("):
+			df[idx] = df[idx].apply(lambda x: x.replace("POINT(", "POINT ("))
+
+	print(df.dtypes)
 	# Bulk upload files and check if successful
 	success, failed = 0, 0
-	for success, info in helpers.parallel_bulk(es, bulk_action, chunk_size=10):
+	for success, info in helpers.parallel_bulk(es, bulk_action(df, INDEX_NAME, TYPE), chunk_size=50, raise_on_error=False):
 		if not success:
 			failed += 1
 		else:
@@ -96,10 +117,6 @@ def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
 
 def updateFile(datafile, metafile, filename, es):
 	print('START UPLOAD : ', filename)
-
-	datafile.seek(0)
-	metafile.seek(0)
-	metadata = json.loads(metafile.read().decode('utf-8').replace('\0', ''))
 
 	# Index wird angelegt, falls er noch nicht existiert
 	if not es.indices.exists('dlrmetadata'):
@@ -126,6 +143,7 @@ def updateFile(datafile, metafile, filename, es):
 			"Date": {
 				"type": "date",
 				"format": "yyyy-MM-dd HH:mm:ss.SSS",
+				"ignore_malformed": True
 			},
 			"Double": {
 				"type": "double",
@@ -147,14 +165,15 @@ def updateFile(datafile, metafile, filename, es):
 			}
 		}
 
-		coldesc = json.load(open('/home/lea/Dokumente/FSU/vis_ttt/data/meta/_columnDescription.json'))
+		coldesc = json.load(open('../../data/meta/_columnDescription.json'))
 		for col in coldesc:
 			if 'id' in col:
 				column_type = col['type']
 				dlrmetadatabody['mappings']['doc']['properties'][str(col['id'])] = column_types_dict[column_type]
 
-		print('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', '\n', dlrmetadatabody, '\n', 'XXXXXXXXXXXXXXXXXXXXXXXXXXX')
 		es.indices.create(index='dlrmetadata', body=dlrmetadatabody)
+
+	es.indices.put_settings(index='dlrmetadata', body={'index': {"refresh_interval" : '-1'}})
 
 	# Falls Daten schon existieren und nur upgedated werden sollen, werden sie gelöscht
 	if es.indices.exists('dlrmetadata'):
@@ -162,11 +181,12 @@ def updateFile(datafile, metafile, filename, es):
 	print('add document...')
 	addDocument(datafile, metafile, filename, INDEX_NAME='dlrmetadata', TYPE='doc', es=es)
 
+	metadata = json.loads(metafile.read().decode('utf-8').replace('\0', ''))
 	print('check indices')
 	if es.indices.exists('dataoverview'):
 		es.delete_by_query(index='dataoverview', doc_type='doc', body={'query': {'match': {'filename': filename}}})
 	now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-
+	datafile.seek(0)
 	constants = getConstants(metafile, metadata)
 	filenames = {'filename': filename.split('.')[0],
 	             'size': len(datafile.read()),
