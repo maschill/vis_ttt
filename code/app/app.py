@@ -5,6 +5,9 @@ import tempfile
 import sys, json
 import pandas as pd
 
+from bokeh.plotting import figure
+from bokeh.embed import components
+
 col1 = [''.join(['val', str(x)]) for x in range(10)]
 col2 = [x for x in range(10)]
 col3 = ['red', 'green', 'blue', 'green', 'red', 'blue', 'red', 'yellow', 'red', 'green']
@@ -22,12 +25,26 @@ import  elasticSearch
 Files = filesfromEL(es=es)
 print(Files)
 
+def make_plot():
+    plot = figure(plot_height=300, sizing_mode='scale_width')
+
+    x = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    y = [2**v for v in x]
+
+    plot.line(x, y, line_width=4)
+
+    script, div = components(plot)
+    return script, div
+
 @app.route('/')
 def index():
+	plots = []
+	plots.append(make_plot())
+
 	levels  = df.col3.unique()
 	min_c2 = df.col2.min()
 	max_c2 =  df.col2.max()
-	return render_template('home.html', levels=levels, min_c2=min_c2, max_c2=max_c2)
+	return render_template('home.html', levels=levels, min_c2=min_c2, max_c2=max_c2, plots=plots)
 
 @app.route('/data_servant', methods=['POST', 'GET'])
 def data_servant():
