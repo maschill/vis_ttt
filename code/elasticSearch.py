@@ -69,7 +69,7 @@ def clean_row(row):
 def bulk_action(df, INDEX_NAME, TYPE):
 	for idx, row in df.iterrows():
 		#row = clean_row(row)
-		print(idx, ': ' , row)
+		#print(idx, ': ' , row)
 		yield {
 			'_op_type': 'index',
 			'_index': INDEX_NAME,
@@ -184,7 +184,7 @@ def updateFile(datafile, metafile, filename, es):
 
 		es.indices.create(index='dlrmetadata', body=dlrmetadatabody)
 
-	#es.indices.put_settings(index='dlrmetadata', body={'index': {"refresh_interval" : '-1'}})
+	es.indices.put_settings(index='dlrmetadata', body={'index': {"refresh_interval" : '-1'}})
 
 	# Falls Daten schon existieren und nur upgedated werden sollen, werden sie gelöscht
 	if es.indices.exists('dlrmetadata'):
