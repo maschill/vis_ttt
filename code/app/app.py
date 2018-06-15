@@ -7,6 +7,7 @@ import pandas as pd
 
 from bokeh.plotting import figure
 from bokeh.embed import components
+from bokeh.embed import server_document
 
 col1 = [''.join(['val', str(x)]) for x in range(10)]
 col2 = [x for x in range(10)]
@@ -38,13 +39,15 @@ def make_plot():
 
 @app.route('/')
 def index():
+	script = server_document("localhost:5006")
+	
 	plots = []
 	plots.append(make_plot())
 
 	levels  = df.col3.unique()
 	min_c2 = df.col2.min()
 	max_c2 =  df.col2.max()
-	return render_template('home.html', levels=levels, min_c2=min_c2, max_c2=max_c2, plots=plots)
+	return render_template('home.html', levels=levels, min_c2=min_c2, max_c2=max_c2, plots=plots, script=script)
 
 @app.route('/data_servant', methods=['POST', 'GET'])
 def data_servant():

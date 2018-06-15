@@ -61,6 +61,8 @@
 {% endfor %} 
 <p>plot end</p>
 
+{{ script|safe }}
+
 <script type="text/javascript">
      $(function() {    
         $("#data_request_btn").click(function(){
