@@ -4,12 +4,12 @@
 <h1>Home - Analytics - Visualization</h1>
 <h1>Also: Best UX by far!</h1>
 <p>Home - Analytics - Visualization</p>
+<!-- 
 
 <button type="button" class="btn border border-dark btn-default float-sm-right" id="data_request_btn">Request Data</button>
 
 <p id="dyn_block"> Start Content</p>
 <br>
-
 <br><br><br>
 <label for="mission0">Mission Name:</label>
 <input type="text", value = "", id="mission0", class="form-control float-sm-right col-md-6">
@@ -59,9 +59,10 @@
         {{part | safe}}
     {% endfor %}
 {% endfor %} 
-<p>plot end</p>
+<p>plot end</p> -->
+<div class="col-md-12">{{ script|safe }}
+</div>
 
-{{ script|safe }}
 
 <script type="text/javascript">
      $(function() {    

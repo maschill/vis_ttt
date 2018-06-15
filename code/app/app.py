@@ -39,7 +39,7 @@ def make_plot():
 
 @app.route('/')
 def index():
-	script = server_document("localhost:5006")
+	script = server_document("http://localhost:5006/sliderplot")
 	
 	plots = []
 	plots.append(make_plot())

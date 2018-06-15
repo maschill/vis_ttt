@@ -22,7 +22,7 @@ import numpy as np
 #functions
 def read_data(filename):
     data = pd.read_csv(filename, sep='\t')
-    meta = json.load(open('data/meta/' + filename.split('/')[-1].replace('.tsv', '.json')))
+    meta = json.load(open('data/' + filename.split('/')[-1].replace('.tsv', '.json')))
  
 def get_location(row):
     location = []
@@ -43,13 +43,13 @@ N = 200
 x = np.linspace(0, 4*np.pi, N)
 y = np.sin(x)
 source = ColumnDataSource(data=dict(x=x, y=y))
-datafiles = sorted(glob.glob('data/data/*'))
-metafiles = sorted(glob.glob('data/meta/*'))
+datafiles = sorted(glob.glob('data/*.tsv'))
+metafiles = sorted(glob.glob('data/*.json'))
 filename = datafiles[57]
 try:
-    meta = json.load(open('data/meta/' + filename.split('\\')[-1].replace('.tsv', '.json')))
+    meta = json.load(open('data/' + filename.split('\\')[-1].replace('.tsv', '.json')))
 except FileNotFoundError:
-    meta = json.load(open('data/meta/' + filename.split('/')[-1].replace('.tsv', '.json')))
+    meta = json.load(open('data/' + filename.split('/')[-1].replace('.tsv', '.json')))
 
 data = pd.read_csv(filename, names=meta['columns'], sep='\t')
 
@@ -74,7 +74,7 @@ source = ColumnDataSource(data=dict(x=data['scene_lat'] , y=data['scene_lon'] ))
 
 
 # Set up plot
-plot = figure(plot_height=400, plot_width=400, title="my sine wave",
+plot = figure( title="my sine wave", height=500, width=1000,
               tools="crosshair,pan,reset,save,wheel_zoom",
               x_range=[data['scene_lat'].min(), data['scene_lat'].max()], 
               y_range=[data['scene_lon'].min(), data['scene_lon'].max()])
@@ -112,5 +112,7 @@ for w in [date]:
 # Set up layouts and add to document
 inputs = widgetbox(text, date)
 
-curdoc().add_root(row(inputs, plot, width=800))
+curdoc().add_root(row(inputs, plot, ))
 curdoc().title = "Sliders"
+curdoc().plot_height=500
+curdoc().plot_width=1000
