@@ -23,7 +23,7 @@ import numpy as np
 #functions
 def read_data(filename):
     data = pd.read_csv(filename, sep='\t')
-    meta = json.load(open('data/meta/' + filename.split('/')[-1].replace('.tsv', '.json')))
+    meta = json.load(open('data/' + filename.split('/')[-1].replace('.tsv', '.json')))
  
 def get_location(row):
     location = []
@@ -93,7 +93,7 @@ data['scene_lon'] = (data['northboundingcoo0'] + data['southboundingcoo0']) / 2
 # Set up data
 source = ColumnDataSource(data=dict(x=data['scene_lat'] , y=data['scene_lon'], c=data['percentageofpote1'] ))
 
-plot.circle('x', 'y', color='c', source=source, line_width=3, line_alpha=0.6)
+plot.circle('x', 'y', color='c', source=source, line_width=3, alpha=0.6)
 
 
 # Set up widgets
@@ -118,9 +118,8 @@ def update_data(attrname, old, new):
     y = view['scene_lon']
     #c = view['percentageofpote1']
     print(min(view['percentageofpote1']), max(view['percentageofpote1']))
-    c = ["#%02x%02x%02x" % (int(r), 150, 150) for r in view['percentageofpote1']]
-    print(c)
-    source.data = dict(x=x, y=y, c=c)
+    colors = ["#%02x%02x%02x" % (int(255/(r+1)), 100, 100) for r in data['percentageofpote1']]
+    source.data = dict(x=x, y=y, c=colors)
 
 for w in [date]:
     w.on_change('value', update_data)
@@ -129,5 +128,7 @@ for w in [date]:
 # Set up layouts and add to document
 inputs = widgetbox(text, date)
 
-curdoc().add_root(row(inputs, plot, width=800))
+curdoc().add_root(row(inputs, plot, ))
 curdoc().title = "Sliders"
+curdoc().plot_height=500
+curdoc().plot_width=1000

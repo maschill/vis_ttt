@@ -176,7 +176,7 @@ def updateFile(datafile, metafile, filename, es):
 			}
 		}
 
-		coldesc = json.load(open('../../data/meta/_columnDescription.json'))
+		coldesc = json.load(open('../../data/_columnDescription.json'))
 		for col in coldesc:
 			if 'id' in col:
 				column_type = col['type']
