@@ -7,6 +7,66 @@ at your command prompt. Then navigate to the URL
     http://localhost:5006/sliders
 in your browser.
 '''
+
+###
+
+'''
+from elasticsearch import Elasticsearch
+import datetime
+import pandas as pd
+
+es = Elasticsearch('http://localhost:9200')
+
+q =  {
+        "bool": {
+            "should": [{
+                "exists": {
+                    "field" : 'percentageofpote1'
+                }
+            },
+            {
+                "exists": {
+                    "field": 'westboundingcoor0',
+                }
+            },
+            {
+                "exists": {
+                    "field": 'eastboundingcoor0'
+                }
+            },
+            {
+                "exists": {
+                    "field": 'northboundingcoo0'
+                }
+            },
+            {
+                "exists": {
+                    "field": 'southboundingcoo0'
+                }
+            }
+            ]
+        }
+    }
+
+
+all_data = []
+resp = es.search(index='dlrmetadata', doc_type='doc', body={"query":q}, size=1000,   scroll = '2m')
+sid = resp['_scroll_id']
+scroll_size = resp['hits']['total']
+while (scroll_size > 0):
+    print(sid, scroll_size)
+    all_data = all_data + [d['_source'] for d in resp['hits']['hits']]
+    resp = es.scroll(scroll_id = sid, scroll = '2m')
+    # Update the scroll ID
+    sid = resp['_scroll_id']
+    # Get the number of results that we returned in the last scroll
+    scroll_size = len(resp['hits']['hits'])
+    
+    df = pd.DataFrame(all_data)
+    df['starttime1']=pd.to_datetime(df['starttime1']*1000000)
+
+'''
+
 import numpy as np
 
 from bokeh.io import curdoc
