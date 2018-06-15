@@ -7,10 +7,21 @@ at your command prompt. Then navigate to the URL
     http://localhost:5006/sliders
 in your browser.
 '''
+import numpy as np
+
+from bokeh.io import curdoc
+from bokeh.layouts import row, widgetbox
+from bokeh.models import ColumnDataSource
+from bokeh.models.widgets import Slider, TextInput
+from bokeh.plotting import figure
+
+import requests
+import os, glob, json
+import pandas as pd
+import numpy as np
 
 ###
 
-'''
 from elasticsearch import Elasticsearch
 import datetime
 import pandas as pd
@@ -19,7 +30,7 @@ es = Elasticsearch('http://localhost:9200')
 
 q =  {
         "bool": {
-            "should": [{
+            "must": [{
                 "exists": {
                     "field" : 'percentageofpote1'
                 }
@@ -54,7 +65,6 @@ resp = es.search(index='dlrmetadata', doc_type='doc', body={"query":q}, size=100
 sid = resp['_scroll_id']
 scroll_size = resp['hits']['total']
 while (scroll_size > 0):
-    print(sid, scroll_size)
     all_data = all_data + [d['_source'] for d in resp['hits']['hits']]
     resp = es.scroll(scroll_id = sid, scroll = '2m')
     # Update the scroll ID
@@ -65,26 +75,17 @@ while (scroll_size > 0):
     df = pd.DataFrame(all_data)
     df['starttime1']=pd.to_datetime(df['starttime1']*1000000)
 
-'''
+print('Dataframe received')
+# Change values to datetime for plotting issues
+#data['starttime1'] = pd.to_datetime(data['starttime1'])
+data = df.copy()
+data['month_year'] = data.starttime1.dt.to_period('M')
+data['year'] = data.starttime1.dt.year
+data['month'] = data.starttime1.dt.month
+data['scene_lat'] = (data['westboundingcoor0'] + data['eastboundingcoor0']) / 2
+data['scene_lon'] = (data['northboundingcoo0'] + data['southboundingcoo0']) / 2
 
-import numpy as np
 
-from bokeh.io import curdoc
-from bokeh.layouts import row, widgetbox
-from bokeh.models import ColumnDataSource
-from bokeh.models.widgets import Slider, TextInput
-from bokeh.plotting import figure
-
-import requests
-import os, glob, json
-import pandas as pd
-import numpy as np
-
-#functions
-def read_data(filename):
-    data = pd.read_csv(filename, sep='\t')
-    meta = json.load(open('data/' + filename.split('/')[-1].replace('.tsv', '.json')))
- 
 def get_location(row):
     location = []
 
@@ -127,28 +128,9 @@ for (index,country) in enumerate(worldmapdata):
     )
 
 
-#source = ColumnDataSource(data=dict(x=x, y=y))
-datafiles = sorted(glob.glob('data/data/*'))
-metafiles = sorted(glob.glob('data/meta/*'))
-filename = datafiles[57]
-try:
-    meta = json.load(open('data/meta/' + filename.split('\\')[-1].replace('.tsv', '.json')))
-except FileNotFoundError:
-    meta = json.load(open('data/meta/' + filename.split('/')[-1].replace('.tsv', '.json')))
-
-data = pd.read_csv(filename, names=meta['columns'], sep='\t')
-
 # These are the parameters I wanted to take a look at
 water_parameters = ['percentageofpote1', 'westboundingcoor0', 
                     'eastboundingcoor0', 'northboundingcoo0', 'southboundingcoo0']
-
-# Change values to datetime for plotting issues
-data['starttime1'] = pd.to_datetime(data['starttime1'])
-data['month_year'] = data.starttime1.dt.to_period('M')
-data['year'] = data.starttime1.dt.year
-data['month'] = data.starttime1.dt.month
-data['scene_lat'] = (data['westboundingcoor0'] + data['eastboundingcoor0']) / 2
-data['scene_lon'] = (data['northboundingcoo0'] + data['southboundingcoo0']) / 2
 
 # Set up data
 source = ColumnDataSource(data=dict(x=data['scene_lat'] , y=data['scene_lon'], c=data['percentageofpote1'] ))
