@@ -72,6 +72,8 @@ data['scene_lon'] = (data['northboundingcoo0'] + data['southboundingcoo0']) / 2
 # Set up data
 source = ColumnDataSource(data=dict(x=data['scene_lat'] , y=data['scene_lon'] ))
 
+x_range=(int(data['scene_lat'].min()), int(data['scene_lat'].max()))
+y_range=(int(data['scene_lon'].min()), int(data['scene_lon'].max()))
 
 # Set up plot
 plot = figure( title="my sine wave", height=500, width=1000,
@@ -79,7 +81,10 @@ plot = figure( title="my sine wave", height=500, width=1000,
               x_range=[data['scene_lat'].min(), data['scene_lat'].max()], 
               y_range=[data['scene_lon'].min(), data['scene_lon'].max()])
 
-plot.circle('x', 'y', source=source, line_width=3, line_alpha=0.6)
+plot.image_url(url=['https://stepupandlive.files.wordpress.com/2014/09/3d-animated-frog-image.jpg'], x=x_range[0], y=y_range[1], w=x_range[1]-x_range[0], h=y_range[1]-y_range[0])
+
+plot.circle('x', 'y', source=source, line_width=3, alpha=0.3  )
+
 
 
 # Set up widgets
