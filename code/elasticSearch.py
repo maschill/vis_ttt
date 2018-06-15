@@ -9,6 +9,7 @@ import argparse
 import datetime
 from outlierEvenMore import timeConv, delMissesAndOutliers, markMissesAndOutliers
 import pandas as pd
+import numpy as np
 
 def getfieldnames(f, data):
 	#data = json.load(f)
@@ -67,7 +68,7 @@ def clean_row(row):
 
 def bulk_action(df, INDEX_NAME, TYPE):
 	for idx, row in df.iterrows():
-		row = clean_row(row)
+		#row = clean_row(row)
 		print(idx, ': ' , row)
 		yield {
 			'_op_type': 'index',
@@ -99,15 +100,20 @@ def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
 	print('DF PREPARED')
 
 	for idx in df.columns:
-		if type(df[idx][0]) == str and df[idx][0].startswith("POLYGON(("):
-			df[idx] = df[idx].apply(lambda x: x.replace("POLYGON((", "POLYGON (("))
-		if type(df[idx][0]) == str and df[idx][0].startswith("POINT("):
-			df[idx] = df[idx].apply(lambda x: x.replace("POINT(", "POINT ("))
+		#column isglobal0 not only Bool type as stated in description
+		if idx == 'isglobal0':
+			# and filename in ['m_irsp6awifsp', 'm_irsp6lissiiip', 'm_irsp6lissivpmono']:
+			df.drop(columns='isglobal0', inplace=True)
+		elif type(df[idx][0]) == str and df[idx][0].startswith("POLYGON(("):
+		#	df[idx] = df[idx].apply(lambda x: x.replace("POLYGON((", "POLYGON (("))
+			df[idx] = df[idx].apply(lambda x: x.replace("POLYGON ((0 0, 0 0, 0 0, 0 0, 0 0))", "POINT (0 0)"))
+		#elif type(df[idx][0]) == str and df[idx][0].startswith("POINT("):
+		#	df[idx] = df[idx].apply(lambda x: x.replace("POINT(", "POINT ("))
 
 	print(df.dtypes)
 	# Bulk upload files and check if successful
 	success, failed = 0, 0
-	for success, info in helpers.parallel_bulk(es, bulk_action(df, INDEX_NAME, TYPE), chunk_size=50, raise_on_error=False):
+	for success, info in helpers.parallel_bulk(es, bulk_action(df, INDEX_NAME, TYPE), chunk_size=50, raise_on_error=True):
 		if not success:
 			failed += 1
 		else:
@@ -134,10 +140,15 @@ def updateFile(datafile, metafile, filename, es):
 		}
 		column_types_dict = {
 			"GeoObject": {
+				#"type": "text"
 				"type": "geo_shape",
-				"tree": "quadtree",
-				"precision": "1000m",
-				"distance_error_pct": 0.001,
+				#"tree": "geohash",#"quadtree",
+				"precision": "100km",
+				# for 2mB file, disk space required by precision:
+				#100 km : 5 mb
+				# 10 km : 27 mb
+				#  1 km : too much (1117 docs.count: 375mb)
+				#"distance_error_pct": 0.025,
 				"ignore_malformed": True
 			},
 			"Date": {
@@ -146,22 +157,22 @@ def updateFile(datafile, metafile, filename, es):
 				"ignore_malformed": True
 			},
 			"Double": {
-				"type": "double",
+				"type": "double"
 			},
 			"Integer": {
-				"type": "integer",
+				"type": "integer"
 			},
 			"Character": {
-				"type": "text",
+				"type": "text"
 			},
 			"Identifier": {
-				"type": "keyword",
+				"type": "keyword"
 			},
 			"Boolean": {
-				"type": "boolean",
+				"type": "boolean"
 			},
 			"Text": {
-				"type": "text",
+				"type": "text"
 			}
 		}
 
@@ -173,7 +184,7 @@ def updateFile(datafile, metafile, filename, es):
 
 		es.indices.create(index='dlrmetadata', body=dlrmetadatabody)
 
-	es.indices.put_settings(index='dlrmetadata', body={'index': {"refresh_interval" : '-1'}})
+	#es.indices.put_settings(index='dlrmetadata', body={'index': {"refresh_interval" : '-1'}})
 
 	# Falls Daten schon existieren und nur upgedated werden sollen, werden sie gelöscht
 	if es.indices.exists('dlrmetadata'):
