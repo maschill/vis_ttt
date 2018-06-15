@@ -106,7 +106,7 @@ def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
 			df.drop(columns='isglobal0', inplace=True)
 		elif type(df[idx][0]) == str and df[idx][0].startswith("POLYGON(("):
 		#	df[idx] = df[idx].apply(lambda x: x.replace("POLYGON((", "POLYGON (("))
-			df[idx] = df[idx].apply(lambda x: x.replace("POLYGON ((0 0, 0 0, 0 0, 0 0, 0 0))", "POINT (0 0)"))
+			df[idx] = df[idx].apply(lambda x: x.replace("POLYGON ((0 0, 0 0, 0 0, 0 0, 0 0))", "POINT (0 0)") if type(x) == str else x)
 		#elif type(df[idx][0]) == str and df[idx][0].startswith("POINT("):
 		#	df[idx] = df[idx].apply(lambda x: x.replace("POINT(", "POINT ("))
 
