@@ -92,7 +92,7 @@ def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
 	constants = getConstants(meta, metadata)
 	print('read data')
 	df = pd.read_csv(data, names=fieldnames, sep='\t', low_memory=False)
-	df = timeConv(df)
+	#df = timeConv(df)
 	df = markMissesAndOutliers(df)
 	df['filename'] = filename
 	if "mission0" in constants:
