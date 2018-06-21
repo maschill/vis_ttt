@@ -25,7 +25,7 @@ def getConstants(f, data):
 	return const
 
 def get_location(row):
-	# es input format: 
+	# es input format:
 	# {
 	# 	"type": <type>,
 	# 	"coordinates": <list of coordinates depending on type>
@@ -44,7 +44,7 @@ def get_location(row):
 			return {"type":"polygon", "coordinates":[location]}
 			#return {"type": "polygon", "coordinates": [[[1.0,1.0],[1.0,10.0],[10.0,10.0],[10.0,1.0],[1.0,1.0]]]}
 		elif type(item)==str and item.startswith("POINT("):
-			location = [float(x) for x in item[6:-1].split(" ")]  
+			location = [float(x) for x in item[6:-1].split(" ")]
 			return {"type": "point", "coordinates":[location]}
 		return {"type": "polygon", "coordinates": [[[1.0,1.0],[1.0,10.0],[10.0,10.0],[10.0,1.0],[1.0,1.0]]]}
 
@@ -186,7 +186,7 @@ def updateFile(datafile, metafile, filename, es):
 
 	es.indices.put_settings(index='dlrmetadata', body={'index': {"refresh_interval" : '-1'}})
 
-	# Falls Daten schon existieren und nur upgedated werden sollen, werden sie gelöscht
+	# Falls Daten schon existieren und nur upgedated werden sollen, werden sie geloescht
 	if es.indices.exists('dlrmetadata'):
 		es.delete_by_query(index='dlrmetadata', doc_type='doc', body={'query': {'match': {'filename': filename}}})
 	print('add document...')
