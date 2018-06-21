@@ -18,6 +18,30 @@
         <script src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.16.min.js"></script>
         <script src="https://cdn.pydata.org/bokeh/release/bokeh-tables-0.12.16.min.js"></script>
 
+        <style> /* set the CSS */
+            html, body {
+              margin: 0;
+              height: 100%
+            }
+
+            .bar {
+              fill: #0080FF;
+            }
+            .bar:hover {
+                fill: red
+            }
+            .text {
+                fill: white;
+            }
+            .axis--x path {
+              display: none;
+            }
+            .d3-tip {
+              line-height: 0.5;
+              padding: 12px;
+              background: rgba(255, 255, 255, 0.8);
+            }
+  	    </style>
     </head>
     <body>
          {% include 'includes/navbar.html' %}

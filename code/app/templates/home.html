@@ -4,6 +4,174 @@
 <h1>Home - Analytics - Visualization</h1>
 <h1>Also: Best UX by far!</h1>
 <p>Home - Analytics - Visualization</p>
+
+<div class="chart"></div>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+<script>
+    var data = {{ d3data | safe }}
+
+    data.sort(function(x,y){
+        return d3.descending(x.std_deviation / x.avg, y.std_deviation / y.avg)})
+
+    var margin = {top: 120, right: 20, bottom: 200, left: 80},
+        width = 1200 - margin.left - margin.right,
+        height = 500 - margin.top - margin.bottom;
+
+    var formatPercent = d3.format(".0%");
+
+    var x = d3.scale.ordinal()
+        .rangeRoundBands([0, width], .1);
+
+    var y = d3.scale.log()
+        .range([height, 0]);
+
+    var xAxis = d3.svg.axis()
+        .scale(x)
+        .orient("bottom");
+
+    var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left")
+        //.tickFormat(formatPercent);
+
+    var tip = d3.tip()
+      .attr('class', 'd3-tip')
+      .offset([-10, 0])
+      .html(function(d) {
+        return d.fname + ": " + d3.format(".4f")(d.std_deviation / d.avg);
+      })
+
+    var svg = d3.select("body").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    svg.call(tip);
+
+    data.forEach(function(d,i){
+        x.domain(data.map(function(d) { return d.fname; }));
+        y.domain([1e-6, d3.max(data, function(d) { return d.std_deviation / d.avg; })]);
+    });
+
+	  svg.append("g")
+		  .attr("class", "axis axis--x")
+		  .attr("transform", "translate(0," + height + ")")
+		  .call(xAxis)
+		  .selectAll("text")
+				.style("text-anchor", "end")
+				.attr("dx", "-.4em")
+                .attr("dy", "-.3em")
+				.attr("transform", "rotate(-90)");
+
+  svg.append("g")
+      .attr("class", "axis axis--y")
+      .call(yAxis.ticks(5))
+
+    svg.selectAll("rect")
+        .data(data)
+        .enter().append("rect")
+              .attr("class", "bar")
+              .attr("x", function(d) { return x(d.fname); })
+              .attr("width", x.rangeBand())
+              .attr("y", function(d) { return y(d.std_deviation / d.avg); })
+              .attr("height", function(d) { return height - y(d.std_deviation / d.avg); })
+              .on('mouseover', tip.show)
+              .on('mouseout', tip.hide)
+              .on("click", function(d) {console.log("event = ", d.fname)})
+
+    svg.append("text")
+        .attr("x", 0)
+        .attr("y", 0 - (margin.top / 2))
+        .attr("text-anchor", "left")
+        .style("font-size", "16px")
+        .style("font-weight", "bold")
+        .text("Coefficient of variation");
+
+
+//Plot counts
+    var docnum = {{ docnum | safe }}
+
+    var data2 = {{ d3data | safe }}
+
+    data2.sort(function(x,y){
+        return d3.descending(x.count, y.count)})
+
+    var x2 = d3.scale.ordinal()
+		.rangeRoundBands([0, width], .1);
+
+	var y2 = d3.scale.linear()
+		.range([height, 0]);
+
+   var xAxis2 = d3.svg.axis()
+        .scale(x2)
+        .orient("bottom");
+
+    var yAxis2 = d3.svg.axis()
+        .scale(y2)
+        .orient("left")
+        .tickFormat(formatPercent);
+
+    var svg2 = d3.select("body").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    var tip2 = d3.tip()
+      .attr('class', 'd3-tip')
+      .offset([-10, 0])
+      .html(function(d) {
+        return d.fname + ": " + d3.format(".2f")(d.count / docnum);
+      })
+
+    svg2.call(tip2);
+
+    data2.forEach(function(d,i){
+        x2.domain(data2.map(function(d) { return d.fname; }));
+        y2.domain([0, d3.max(data2, function(d) { return (d.count / docnum); })]);
+    });
+
+	  svg2.append("g")
+		  .attr("class", "axis axis--x")
+		  .attr("transform", "translate(0," + height + ")")
+		  .call(xAxis2)
+		  .selectAll("text")
+				.style("text-anchor", "end")
+				.attr("dx", "-.4em")
+                .attr("dy", "-.3em")
+				.attr("transform", "rotate(-90)");
+
+  svg2.append("g")
+      .attr("class", "axis axis--y")
+      .call(yAxis2) //.ticks(5, "%"))
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", "0.71em")
+      .attr("text-anchor", "end");
+
+    svg2.selectAll("rect")
+        .data(data2)
+        .enter().append("rect")
+              .attr("class", "bar")
+              .attr("x", function(d) { return x2(d.fname); })
+              .attr("width", x2.rangeBand())
+              .attr("y", function(d) { return y2(d.count / docnum); })
+              .attr("height", function(d) { return height - y2(d.count / docnum); })
+              .on('mouseover', tip2.show)
+              .on('mouseout', tip2.hide)
+              .on("click", function(d) {console.log("event = ", d.fname)})
+
+    svg2.append("text")
+        .attr("x",0)
+        .attr("y", 0 - (margin.top / 2))
+        .attr("text-anchor", "left")
+        .style("font-size", "16px")
+        .style("font-weight", "bold")
+        .text("Commonness of variable ");
+</script>
 <!-- 
 
 <button type="button" class="btn border border-dark btn-default float-sm-right" id="data_request_btn">Request Data</button>

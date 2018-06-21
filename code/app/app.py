@@ -24,18 +24,43 @@ sys.path.insert(0,'../')
 import  elasticSearch
 
 Files = filesfromEL(es=es)
-print(Files)
+#print(Files)
 
 def make_plot():
-    plot = figure(plot_height=300, sizing_mode='scale_width')
+	plot = figure(plot_height=300, sizing_mode='scale_width')
 
-    x = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    y = [2**v for v in x]
+	x = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+	y = [2**v for v in x]
 
-    plot.line(x, y, line_width=4)
+	plot.line(x, y, line_width=4)
 
-    script, div = components(plot)
-    return script, div
+	script, div = components(plot)
+	return script, div
+
+def get_measured_variables():
+	q = {"_source": ["type", "id"], "query": {"terms": {"type": ["double"]}}}
+	resp = es.search(index='columndescription', doc_type='doc', body=q, size=1000)
+	filename_field = [x['_source']['id'] for x in resp['hits']['hits']]
+
+	variable_description = []
+	for col in filename_field:
+		#print(col)
+		q = {"size": 0,
+		     "aggregations": {
+			     "variance_field": {
+				     "extended_stats": {
+					     "field": col
+				     }
+			     }
+		     }
+		     }
+		resp = es.search(index='dlrmetadata', doc_type='doc', body=q, size=100,
+		                 filter_path=['aggregations.variance_field'])
+		if not 'lon' in col and not 'lat' in col and not 'coo' in col:# and col != 'heightofambiguit0' and col != 'tilt_angle0' and col != 'meandifferenceto1':
+			resp['aggregations']['variance_field']['fname'] = col
+			variable_description += [resp['aggregations']['variance_field']]
+
+	return variable_description
 
 @app.route('/')
 def index():
@@ -43,11 +68,13 @@ def index():
 	
 	plots = []
 	plots.append(make_plot())
+	d3data = get_measured_variables()
+	docnum = es.count(index='dlrmetadata', filter_path=['count'])['count']
 
 	levels  = df.col3.unique()
 	min_c2 = df.col2.min()
 	max_c2 =  df.col2.max()
-	return render_template('home.html', levels=levels, min_c2=min_c2, max_c2=max_c2, plots=plots, script=script)
+	return render_template('home.html', levels=levels, min_c2=min_c2, max_c2=max_c2, plots=plots, script=script, d3data=d3data, docnum=docnum)
 
 @app.route('/data_servant', methods=['POST', 'GET'])
 def data_servant():

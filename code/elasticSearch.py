@@ -1,21 +1,27 @@
 '''
-script to load tsv files with column description in json file
+Load data from tsv files with column description from json file to elasticsearch. Create index for data (dlrmetadata),
+column descriptions (columndescription) and data table (dataoverview). Upload new data to index / update existing data.
 '''
 
 from elasticsearch import helpers, Elasticsearch
-import csv, json
-import glob, os
+import json
+import glob, os, sys
 import argparse
 import datetime
-from outlierEvenMore import timeConv, delMissesAndOutliers, markMissesAndOutliers
 import pandas as pd
 import numpy as np
 
+from outlierEvenMore import timeConv, delMissesAndOutliers, markMissesAndOutliers
+
+
 def getfieldnames(f, data):
-	#data = json.load(f)
 	return [w.replace('.','') for w in  data['columns']]
 
+
 def getConstants(f, data):
+	'''
+	add constants from .json file
+	'''
 	fieldnames = []
 	values = []
 	for const in data['constants']:
@@ -24,19 +30,9 @@ def getConstants(f, data):
 	const = dict(zip(fieldnames, values))
 	return const
 
+
+#ToDo : delete get_location since not used anymore
 def get_location(row):
-	# es input format:
-	# {
-	# 	"type": <type>,
-	# 	"coordinates": <list of coordinates depending on type>
-	# }
-
-	## tsv file format
-	## POLYGON(([list of coordinates])) or
-	## 8 seperate fields giving corners
-	## POINT((coordinates)) or
-	location = []
-
 	for _,item in row.iteritems():
 		if type(item)==str and item.startswith("POLYGON(("):
 			#POLYGON((lon lat, lon2 lat2, ...., lonN latN))
@@ -48,28 +44,36 @@ def get_location(row):
 			return {"type": "point", "coordinates":[location]}
 		return {"type": "polygon", "coordinates": [[[1.0,1.0],[1.0,10.0],[10.0,10.0],[10.0,1.0],[1.0,1.0]]]}
 
+
+# ToDo: clean_row since not used anymore
 def clean_row(row):
-	r = []
 	for idx,item in row.iteritems():
 		if type(item)==str and item.startswith("POLYGON(("):
 			row[idx].replace('N(', 'N (')
-
-			#POLYGON((lon lat, lon2 lat2, ...., lonN latN))
-			#location = [[float(x) for x in pair.strip().split(" ")] for pair in item[9:-2].split(",")]
-			#return {"type":"polygon", "coordinates":[location]}
-			#return {"type": "polygon", "coordinates": [[[1.0,1.0],[1.0,10.0],[10.0,10.0],[10.0,1.0],[1.0,1.0]]]}
 		elif type(item)==str and item.startswith("POINT("):
 			row[idx].replace('T(', 'T (')
-			#location = [float(x) for x in item[6:-1].split(" ")]
-			#return {"type": "point", "coordinates":[location]}
-		#return {"type": "polygon", "coordinates": [[[1.0,1.0],[1.0,10.0],[10.0,10.0],[10.0,1.0],[1.0,1.0]]]}
 		return row
 
 
+# ToDo: include function if 'live' calculation is to slow (discuss with Jennette)
+def getpolygonmean(polygon):
+    p = polygon.strip(')POLYGON(').split(',')
+    coords = np.array([[float(x) for x in ort.strip().split(' ')] for ort in p])
+    meanlon, meanlat = coords.mean(axis=0)
+    return meanlon, meanlat
+
+
 def bulk_action(df, INDEX_NAME, TYPE):
+	'''	Prepare generator for bulk upload
+	Input:
+		df: pandas dataframe
+		INDEX_NAME: elasticsearch index (dlrmetadata)
+		TYPE: elasticsearch document type (doc)
+	'''
 	for idx, row in df.iterrows():
-		#row = clean_row(row)
-		#print(idx, ': ' , row)
+
+		# ToDo: use getpolygonmean to add polygon mean as column to speed up computation later on
+
 		yield {
 			'_op_type': 'index',
 			'_index': INDEX_NAME,
@@ -79,38 +83,41 @@ def bulk_action(df, INDEX_NAME, TYPE):
 				#'location': get_location(row)
 		}
 
+
 def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
-	print('##############################################')
+	'''	Bulk upload documents to dlrmetadata index
+	INPUT:
+		data: opened tsc file
+		meta: opened json file
+		filename: string with filename
+		INDEX_NAME: elasticsearch index to add data to
+		TYPE: elasticsearch type for index
+		es: elasticsearch version
+	'''
 	meta.seek(0)
-	print('metadata load')
 	metadata = json.loads(meta.read().decode('utf-8').replace('\0', ''))
-	print('get fieldnames')
 	meta.seek(0)
 	fieldnames = getfieldnames(meta, metadata)
-	print('get constants')
 	meta.seek(0)
 	constants = getConstants(meta, metadata)
-	print('read data')
 	df = pd.read_csv(data, names=fieldnames, sep='\t', low_memory=False)
 	#df = timeConv(df)
 	df = markMissesAndOutliers(df)
+
+	# add filename to match constants and data and mission0 for simple selection later on
 	df['filename'] = filename
 	if "mission0" in constants:
 		df["mission0"] = constants["mission0"]
-	print('DF PREPARED')
+	print('DATA PREPARED FOR UPLOAD ....')
 
 	for idx in df.columns:
-		#column isglobal0 not only Bool type as stated in description
+		#column isglobal0 not only Bool type as stated in description, not clear what values mean ...
 		if idx == 'isglobal0':
-			# and filename in ['m_irsp6awifsp', 'm_irsp6lissiiip', 'm_irsp6lissivpmono']:
 			df.drop(columns='isglobal0', inplace=True)
 		elif type(df[idx][0]) == str and df[idx][0].startswith("POLYGON(("):
-		#	df[idx] = df[idx].apply(lambda x: x.replace("POLYGON((", "POLYGON (("))
+			# Elasticsearch can' handle polygon of form 'POLYGON ((0 0, 0 0, 0 0, 0 0, 0 0))' therefore chenged to POINT
 			df[idx] = df[idx].apply(lambda x: x.replace("POLYGON ((0 0, 0 0, 0 0, 0 0, 0 0))", "POINT (0 0)") if type(x) == str else x)
-		#elif type(df[idx][0]) == str and df[idx][0].startswith("POINT("):
-		#	df[idx] = df[idx].apply(lambda x: x.replace("POINT(", "POINT ("))
 
-	print(df.dtypes)
 	# Bulk upload files and check if successful
 	success, failed = 0, 0
 	for success, info in helpers.parallel_bulk(es, bulk_action(df, INDEX_NAME, TYPE), chunk_size=50, raise_on_error=True):
@@ -121,10 +128,51 @@ def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
 	print(data, 'added to elasticsearch index ', INDEX_NAME, '\n',
 	      'success: ', success, 'failed: ', failed)
 
-def updateFile(datafile, metafile, filename, es):
-	print('START UPLOAD : ', filename)
 
-	# Index wird angelegt, falls er noch nicht existiert
+def updateFile(datafile, metafile, filename, es):
+	'''
+	Function is called when upload file button is clicked. Creates indexes for data (dlrmetadata), column descriptions
+	(columndescription) and data table on data.html page (dataoverview). Uploads new data to index / updates existing data
+	if filenames are equal.
+	Input:
+		datafile: .tsv file containing data
+		metaflie: .json file containing datafile information, esp. column names
+		filename: string with filename, since datafile and metafile are already open
+		es: elasticsearch class
+	'''
+
+	# Column description index creation or if already existsing deleted and created again
+	print('Start uploading column description')
+	if es.indices.exists('columndescription'):
+		es.indices.delete(index='columndescription', ignore=[400, 404])
+		try:
+			columnDescription = json.load(open('../../data/meta/_columnDescription.json'))
+			for entry in columnDescription:
+				es.index(index='columndescription', doc_type='doc', body=entry)
+		except (FileNotFoundError, FileExistsError):
+			print('_columnDescription must be located in data/meta to continue relocate file')
+			sys.exit(0)
+	else:
+		try:
+			columnDescription = json.load(open('../../data/meta/_columnDescription.json'))
+			for entry in columnDescription:
+				es.index(index='columndescription', doc_type='doc', body=entry)
+		except (FileNotFoundError, FileExistsError):
+			print('_columnDescription must be located in data/meta to continue relocate file')
+			sys.exit(0)
+
+
+	''' Index for data from .tsv file is created if not exists. To save disk space and speed up indexing we set numer of
+	shards to 1 and number of replicas to 0 as well as polygon precision set to 100km. For polygons ignore_malformed
+	is necessary since some polygons are not well defined.
+	Disk space required for polygon depending on precision (original file size: 2mB):
+	precision 100 km : 5 mb
+	precision  10 km : 27 mb
+	precision   1 km : too much (1117 docs.count: 375mb)
+	'''
+	print('STARTED WITH ', filename, ' ....')
+
+	# Create index for data if not exists
 	if not es.indices.exists('dlrmetadata'):
 		dlrmetadatabody = {
 				"settings": {
@@ -140,15 +188,9 @@ def updateFile(datafile, metafile, filename, es):
 		}
 		column_types_dict = {
 			"GeoObject": {
-				#"type": "text"
+				#"type": "text" if polygones are not used they could be uploaded as string
 				"type": "geo_shape",
-				#"tree": "geohash",#"quadtree",
 				"precision": "100km",
-				# for 2mB file, disk space required by precision:
-				#100 km : 5 mb
-				# 10 km : 27 mb
-				#  1 km : too much (1117 docs.count: 375mb)
-				#"distance_error_pct": 0.025,
 				"ignore_malformed": True
 			},
 			"Date": {
@@ -176,37 +218,52 @@ def updateFile(datafile, metafile, filename, es):
 			}
 		}
 
-		coldesc = json.load(open('../../data/_columnDescription.json'))
-		for col in coldesc:
-			if 'id' in col:
-				column_type = col['type']
-				dlrmetadatabody['mappings']['doc']['properties'][str(col['id'])] = column_types_dict[column_type]
+		# Insert column description depending on type into mappings
+		try:
+			coldesc = json.load(open('../../data/meta/_columnDescription.json'))
+			for col in coldesc:
+				if 'id' in col:
+					column_type = col['type']
+					dlrmetadatabody['mappings']['doc']['properties'][str(col['id'])] = column_types_dict[column_type]
+			es.indices.create(index='dlrmetadata', body=dlrmetadatabody)
+			print('DLRMETADATA INDEX CREATED ....')
+		except FileNotFoundError:
+			print('Column description file must be located in ../../data/meta/ '
+			      'from current directory, which is vis_ttt/code/app/')
 
-		es.indices.create(index='dlrmetadata', body=dlrmetadatabody)
-
+	# Index exists or was created, not set vriables for speed up
 	es.indices.put_settings(index='dlrmetadata', body={'index': {"refresh_interval" : '-1'}})
 
-	# Falls Daten schon existieren und nur upgedated werden sollen, werden sie geloescht
+	# If file is updated, delete old data
 	if es.indices.exists('dlrmetadata'):
 		es.delete_by_query(index='dlrmetadata', doc_type='doc', body={'query': {'match': {'filename': filename}}})
-	print('add document...')
+		print('OLD DOCUMENTS DELETED ....')
+
+	# Upload new documents
+	print('START INDEXING TO DLRMETADATA ....')
 	addDocument(datafile, metafile, filename, INDEX_NAME='dlrmetadata', TYPE='doc', es=es)
 
+	# Now update data overview
 	metadata = json.loads(metafile.read().decode('utf-8').replace('\0', ''))
-	print('check indices')
+	datafile.seek(0)
+
+	# Delete data from table if exists
 	if es.indices.exists('dataoverview'):
 		es.delete_by_query(index='dataoverview', doc_type='doc', body={'query': {'match': {'filename': filename}}})
+
+	# Create metadata about filename
 	now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-	datafile.seek(0)
 	constants = getConstants(metafile, metadata)
 	filenames = {'filename': filename.split('.')[0],
 	             'size': len(datafile.read()),
 	             'addDate': now,
 	             'updateDate': now}
 	filenames.update(constants)
-	print('add ', filenames, 'to dataoverview')
 	es.index(index='dataoverview', doc_type='doc', body=filenames)
-	print('DONE WITH ', filename)
+	print('ADDED ', filenames, ' TO DATAOVERVIEW ....')
+
+	print('FINISHED ', filename, '....')
+
 
 if __name__ == '__main__':
 
