@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+	<meta charset="utf-8">
+	<style> /* set the CSS */
+		html, body {
+		  margin: 0;
+		  height: 100%
+		  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+		}
+
+		.bar {
+		  fill: darkblue;
+		}
+		.bar:hover {
+			fill: red
+		}
+		.text {
+			fill: white;
+		}
+		.axis--y path {
+		  display: none;
+		}
+		.d3-tip {
+		  line-height: 0.5;
+		  padding: 12px;
+		  background: rgba(255, 255, 255, 0.8);
+		}
+		.zoom {
+		  cursor: move;
+		  fill: none;
+		  pointer-events: all;
+		}
+		.axis path,
+		.axis line {
+		  fill: none;
+		  stroke: #000;
+		}
+
+  	</style>
+  </head>
+  
+  <body>
+	<div class="chart"></div>
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+	<script>
+		var data = [{'fname': 'areaofdemvalids0',
+						'avg': 7802.693091804648,
+						'count': 58527,
+						'max': 12366.431593434,
+						'min': 0.094112101,
+						'std_deviation': 3724.307401944735},
+
+					{'fname': 'alongtrackbaseli0',
+						'avg': 5198.147023887017,
+						'count': 124622,
+						'max': 78883.5692353762,
+						'min': -1132.885692025,
+						'std_deviation': 19100.49349843786},
+					{'fname': 'areaofdemlids0',
+						'avg': 7802.693091804648,
+						'count': 58527,
+						'max': 12366.431593434,
+						'min': 0.094112101,
+						'std_deviation': 3724.307401944735},
+
+					{'fname': 'alongtckbaseli0',
+						'avg': 5198.147023887017,
+						'count': 124622,
+						'max': 78883.5692353762,
+						'min': -1132.885692025,
+						'std_deviation': 19100.49349843786},
+{'fname': 'areaoemvalids0',
+						'avg': 7802.693091804648,
+						'count': 58527,
+						'max': 12366.431593434,
+						'min': 0.094112101,
+						'std_deviation': 3724.307401944735},
+
+					{'fname': 'alongtrackbaseli0',
+						'avg': 5198.147023887017,
+						'count': 124622,
+						'max': 78883.5692353762,
+						'min': -1132.885692025,
+						'std_deviation': 19100.49349843786},
+					{'fname': 'areaofdemvali',
+						'avg': 7802.693091804648,
+						'count': 58527,
+						'max': 12366.431593434,
+						'min': 0.094112101,
+						'std_deviation': 3724.307401944735},
+
+					{'fname': 'alonseli0',
+						'avg': 5198.147023887017,
+						'count': 124622,
+						'max': 78883.5692353762,
+						'min': -1132.885692025,
+						'std_deviation': 19100.49349843786},
+{'fname': 'areaofemvalids0',
+						'avg': 7802.693091804648,
+						'count': 58527,
+						'max': 12366.431593434,
+						'min': 0.094112101,
+						'std_deviation': 3724.307401944735},
+
+					{'fname': 'alongtracbaseli0',
+						'avg': 5198.147023887017,
+						'count': 124622,
+						'max': 78883.5692353762,
+						'min': -1132.885692025,
+						'std_deviation': 19100.49349843786}
+					]
+
+		var docnum = 600000
+		var gap = 10
+
+		data.sort(function(x,y){
+			return d3.descending(x.avg, y.avg)})		
+
+		var margin = {top: 60, right: 20, bottom: 80, left: 200},
+			width = 960 - margin.left - margin.right,
+			height = 500 - margin.top - margin.bottom;
+
+		var formatPercent = d3.format(".0%");
+
+		var xR = d3.scale.linear()
+		    .range([width/2+gap/2, width]);
+
+		var xL = d3.scale.linear()
+		    .range([width/2-gap/2, 0]);
+
+		var y = d3.scale.ordinal()
+		    .rangeRoundBands([height, 0], .3);
+
+		var xRAxis = d3.svg.axis()
+			.scale(xR)
+			.ticks(3)
+			.orient("bottom")
+			.tickSize(3)
+
+
+		var xLAxis = d3.svg.axis()
+			.scale(xL)
+			.ticks(3)
+			.orient("bottom")
+			.tickSize(3)
+			//.tickFormat(function(d) { return Math.round(Math.log(d)); });
+
+		var yAxis = d3.svg.axis()
+		    .scale(y)
+		    .tickSize(3)
+		    .orient("left");
+
+		var tipL = d3.tip()
+		  .attr('class', 'd3-tip')
+		  .offset([0, 0])
+		  .html(function(d) {
+			return d.fname + ": " + d3.format(".4f")((d.count / docnum));
+		  })
+
+		var tipR = d3.tip()
+		  .attr('class', 'd3-tip')
+		  .offset([0, 0])
+		  .html(function(d) {
+			return d.fname + ": " + d3.format(".4f")(d.std_deviation / d.avg);
+		  })
+
+		var svg = d3.select("body").append("svg")
+			.attr("width", width + margin.left + margin.right)
+			.attr("height", height + margin.top + margin.bottom)
+		  .append("g")
+			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+		svg.call(tipL);
+		svg.call(tipR);
+
+		data.forEach(function(d,i){
+			y.domain(data.map(function(d) { return d.fname; }));
+			xR.domain([0, d3.max(data, function(d) { return d.std_deviation / d.avg; })]);
+			xL.domain([0, 100]); //d3.max(data, function(d) { return 100 * d.count / docnum; })]);
+			//xLNR.domain([0, d3.max(data, function(d) { return d.count / docnum; })]);
+		});
+
+	 
+
+	 svg.append("g")
+		  .attr("class", "x axis")
+		  .attr("transform", "translate(0," + height + ")")
+		  .call(xRAxis) //.ticks(10, "%"))
+
+	 svg.append("g")
+		  .attr("class", "x axis")
+		  .attr("transform", "translate(0," + height + ")")
+		  .call(xLAxis) //.ticks(10,"%"))
+
+	  svg.append("g")
+		  .attr("class", "axis--y")
+		  //.attr("transform", "translate(" + width + ",0)")
+		  .call(yAxis)
+		.append("text")
+		  .attr("class", "text")
+		  .attr("transform", "rotate(-90)")
+		  .attr("y", 3)
+		  .attr("dy", "0.2em")
+		  .attr("text-anchor", "end");
+	
+		svg.selectAll("rectright")
+			.data(data).enter()
+				.append("rect")
+				  .attr("class", "bar")
+				  .attr("y", function(d) { return y(d.fname); })
+				  .attr("height", y.rangeBand())
+				  .attr("width", function(d) { return xR(-1*d.std_deviation / d.avg); })
+				  .attr("x", width/2 + gap/2) //function(d) { return x(d.std_deviation / d.avg); })
+				  .on('mouseover', tipR.show)
+				  .on('mouseout', tipR.hide)
+				  .on("click", function(d) {console.log("event = ", d.fname)})
+
+//.attr("x", function(d){return x(d.value) })
+//.attr("width", function(d) { return x(0) - x(d.value); })
+
+		svg.selectAll("rectleft")
+			.data(data).enter()
+				.append("rect")
+				  .attr("class", "bar")
+				  .attr("y", function(d) { return y(d.fname); })
+				  .attr("height", y.rangeBand())
+				  .attr("width", function(d) { return xL(100 * d.count / docnum); })
+				  .attr("x", function(d) { return xL(0) - xL(100 * d.count/docnum);}) //function(d) { return x(d.std_deviation / d.avg); })
+				  .on('mouseover', tipL.show)
+				  .on('mouseout', tipL.hide)
+				  .on("click", function(d) {console.log("event = ", d.fname)})
+				
+
+		svg.append("text")
+		    .attr("class", "title")
+		    .attr("x", (width / 2))             
+		    .attr("y", 0 - (margin.top / 2))
+		    .attr("text-anchor", "middle")  
+		    .style("font-size", "16px")
+			.style("font-weight", "bold")
+		    .text("Measurements in DLR Data");
+
+		svg.append("text")
+		    .attr("class", "x-label")
+		    .attr("text-anchor", "middle")
+		    .attr("x", width/2+(width/2-gap)/2)
+		    .attr("y", height+40)
+		    .text("Coefficient of variation");
+
+		svg.append("text")
+		    .attr("class", "x-label")
+		    .attr("text-anchor", "middle")
+		    .attr("x", (width/2-gap)/2)
+		    .attr("y", height+40)
+		    .text("Relative requency of variable");
+
+		svg.select("xaxis")
+			.style("font-size","15px");
+
+		svg.select("yaxis")
+			.style("font-size","15px");
+
+
+	</script>
+  </body>
+</html>
