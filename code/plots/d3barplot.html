@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+	<meta charset="utf-8">
+	<style> /* set the CSS */
+		html, body {
+		  margin: 0;
+		  height: 100%
+		}
+
+		.bar {
+		  fill: #0080FF;
+		}
+		.bar:hover {
+			fill: red
+		}
+		.text {
+			fill: white;
+		}
+		.axis--x path {
+		  display: none;
+		}
+		.d3-tip {
+		  line-height: 0.5;
+		  padding: 12px;
+		  background: rgba(255, 255, 255, 0.8);
+		}
+		.zoom {
+		  cursor: move;
+		  fill: none;
+		  pointer-events: all;
+		}
+
+  	</style>
+  </head>
+  
+  <body>
+	<div class="chart"></div>
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+	<script>
+		var data = [{'fname': 'areaofdemvalids0',
+						'avg': 7802.693091804648,
+						'count': 58527,
+						'max': 12366.431593434,
+						'min': 0.094112101,
+						'std_deviation': 3724.307401944735},
+
+					{'fname': 'alongtrackbaseli0',
+						'avg': 5198.147023887017,
+						'count': 124622,
+						'max': 78883.5692353762,
+						'min': -1132.885692025,
+						'std_deviation': 19100.49349843786}
+					]
+
+		data.sort(function(x,y){
+			return d3.descending(x.avg, y.avg)})		
+
+		var margin = {top: 120, right: 20, bottom: 200, left: 80},
+			width = 960 - margin.left - margin.right,
+			height = 500 - margin.top - margin.bottom;
+
+		var formatPercent = d3.format(".0%");
+
+		var x = d3.scale.ordinal()
+			.rangeRoundBands([0, width], .1);
+
+		//var y = d3.scale.linear()
+		//	.range([height, 0]);
+
+		var y = d3.scale.log()
+			.range([height, 0]);
+
+
+		var xAxis = d3.svg.axis()
+			.scale(x)
+			.orient("bottom");
+
+		var yAxis = d3.svg.axis()
+			.scale(y)
+			.orient("left")
+			//.tickFormat(formatPercent);
+			//.ticks(5)
+			.tickFormat(function(d) { return Math.round(Math.log(d)); });
+
+		var tip = d3.tip()
+		  .attr('class', 'd3-tip')
+		  .offset([-10, 0])
+		  .html(function(d) {
+			return d.fname + ": " + d3.format(".4f")(d.std_deviation / d.avg);
+		  })
+
+		var svg = d3.select("body").append("svg")
+			.attr("width", width + margin.left + margin.right)
+			.attr("height", height + margin.top + margin.bottom)
+		  .append("g")
+			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+		svg.call(tip);
+
+		data.forEach(function(d,i){
+			x.domain(data.map(function(d) { return d.fname; }));
+			y.domain([1e-6, d3.max(data, function(d) { return d.std_deviation / d.avg; })]);	
+		});
+
+	  svg.append("g")
+		  .attr("class", "axis axis--x")
+		  .attr("transform", "translate(0," + height + ")")
+		  .call(xAxis)
+		  .selectAll("text")
+				.style("text-anchor", "end")
+				.attr("transform", "rotate(-90)");
+
+	  svg.append("g")
+		  .attr("class", "axis axis--y")
+		  .call(yAxis.ticks(10, "%"))
+		.append("text")
+		  .attr("transform", "rotate(-90)")
+		  .attr("y", 6)
+		  .attr("dy", "0.71em")
+		  .attr("text-anchor", "end");
+
+		svg.selectAll("rect")
+			.data(data)
+			.enter().append("rect")
+				  .attr("class", "bar")
+				  .attr("x", function(d) { return x(d.fname); })
+				  .attr("width", x.rangeBand())
+				  .attr("y", function(d) { return y(d.std_deviation / d.avg); })
+				  .attr("height", function(d) { return height - y(d.std_deviation / d.avg); })
+				  .on('mouseover', tip.show)
+				  .on('mouseout', tip.hide)
+				  .on("click", function(d) {console.log("event = ", d.fname)})
+
+		svg.append("text")
+		    .attr("x", (width / 2))             
+		    .attr("y", 0 - (margin.top / 2))
+		    .attr("text-anchor", "left")  
+		    .style("font-size", "16px")
+			.style("font-weight", "bold")
+		    .text("Coefficient of variation");
+
+	</script>
+  </body>
+</html>

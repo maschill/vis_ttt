@@ -1,0 +1,90 @@
+def updateFile(datafile, metafile, filename, es):
+	print('START UPLOAD : ', filename)
+	# Index wird angelegt, falls er noch nicht existiert
+	if not es.indices.exists('dlrmetadata'):
+		dlrmetadatabody = {
+				"settings": {
+					"number_of_shards": 1,
+					"number_of_replicas": 0,
+				},
+		}
+		es.indices.create(index='dlrmetadata',
+			body=dlrmetadatabody
+		                  )
+
+		'''
+		dlrmetadatamappingbody = {
+			"properties": {
+				"starttime1": {
+					"type": "date",
+					"ignore_malformed": True,
+
+				},
+				"stoptime1": {
+					"type": "date",
+					"ignore_malformed": True,
+
+				},
+				"mission0": {
+					"type": "text"
+				},
+				"location": {
+					"type": "geo_shape",
+					"tree": "quadtree",
+					"precision": "1000m",
+					"ignore_malformed": True,
+				}
+			}
+		}
+		'''
+		column_types = {
+			"properties": {
+				"Date": {
+					"type": "date",
+					"format": "yyyy-MM-dd HH:mm:ss.SSS"
+					"ignore_malformed": True,
+
+				},
+				"GeoObject": {
+					"type": "geo_shape",
+					"tree": "quadtree",
+					"precision": "1000m",
+					"ignore_malformed": True,
+				}
+			}
+		}
+		for col in metafile['id'].unique():
+
+
+		es.indices.put_mapping(
+			index='dlrmetadata',
+			doc_type='doc',
+			body=dlrmetadatamappingbody
+		)
+
+	# Falls Daten schon existieren und nur upgedated werden sollen, werden sie gelöscht
+	if es.indices.exists('dlrmetadata'):
+		es.delete_by_query(index='dlrmetadata', doc_type='doc', body={'query': {'match': {'filename': filename}}})
+	print('add document...')
+	addDocument(datafile, metafile, filename, INDEX_NAME='dlrmetadata', TYPE='doc', es=es)
+
+	print('check indices')
+	if es.indices.exists('dataoverview'):
+		es.delete_by_query(index='dataoverview', doc_type='doc', body={'query': {'match': {'filename': filename}}})
+	now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+	datafile.seek(0)
+	metafile.seek(0)
+	print('add constants')
+	#meta.seek(0)
+	metadata = json.loads(metafile.read().decode('utf-8').replace('\0', ''))
+	constants = getConstants(metafile, metadata)
+	filenames = {'filename': filename.split('.')[0],
+	             'size': len(datafile.read()),
+	             'addDate': now,
+	             'updateDate': now}
+	filenames.update(constants)
+	print('add ', filenames, 'to dataoverview')
+	es.index(index='dataoverview', doc_type='doc', body=filenames)
+	print('DONE WITH ', filename)
+	#q = {"_script": {"updateDate": now},"query": {"match": {"filename": filename}}}
+	#es.update_by_query(index='dataoverview', doc_type='doc', body=q)

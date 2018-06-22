@@ -10,12 +10,12 @@
 <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
 <script>
     var data = {{ d3data | safe }}
-    var docnum = {{ docnum | safe }}
-
-    var gap = 10
 
     data.sort(function(x,y){
-        return d3.descending(x.std_deviation / x.avg, y.std_deviation / y.avg)})
+        return d3.ascending(Math.abs(x.std_deviation / x.avg), Math.abs(y.std_deviation / y.avg))})
+
+    var docnum = {{ docnum | safe }}
+    var gap = 10
 
         var margin = {top: 60, right: 20, bottom: 80, left: 200},
 			width = 960 - margin.left - margin.right,
@@ -24,7 +24,7 @@
 		var formatPercent = d3.format(".0%");
 
 		var xR = d3.scale.log()
-		    .range([width/2+gap/2, width]);
+		    .range([0, width/2-gap/2]);
 
 		var xL = d3.scale.linear()
 		    .range([width/2-gap/2, 0]);
@@ -55,14 +55,14 @@
 		  .attr('class', 'd3-tip')
 		  .offset([0, 0])
 		  .html(function(d) {
-			return d.fname + ": " + d3.format(".4f")((d.count / docnum));
+			return d.fname + ": " + d3.format(".0f")(Math.round(100 * d.count / docnum));
 		  })
 
 		var tipR = d3.tip()
 		  .attr('class', 'd3-tip')
 		  .offset([0, 0])
 		  .html(function(d) {
-			return d.fname + ": " + d3.format(".4f")(d.std_deviation / d.avg);
+			return d.fname + ": " + d3.format(".2f")(Math.abs(d.std_deviation / d.avg));
 		  })
 
 		var svg = d3.select("body").append("svg")
@@ -76,15 +76,15 @@
 
 		data.forEach(function(d,i){
 			y.domain(data.map(function(d) { return d.fname; }));
-			xR.domain([1e-6, d3.max(data, function(d) { return d.std_deviation / d.avg; })]);
-			xL.domain([0, 100]); //d3.max(data, function(d) { return 100 * d.count / docnum; })]);
+			xR.domain([0.1, d3.max(data, function(d) { return Math.abs(d.std_deviation / d.avg); })]);
+			xL.domain([0, d3.max(data, function(d) { return (100 * d.count / docnum); })]);
 		});
 
 
 
 	 svg.append("g")
 		  .attr("class", "x axis")
-		  .attr("transform", "translate(0," + height + ")")
+		  .attr("transform", "translate(" + (width+gap)/2 + "," + height + ")")
 		  .call(xRAxis) //.ticks(10, "%"))
 
 	 svg.append("g")
@@ -115,17 +115,15 @@
 				  .on('mouseout', tipR.hide)
 				  .on("click", function(d) {console.log("event = ", d.fname)})
 
-//.attr("x", function(d){return x(d.value) })
-//.attr("width", function(d) { return x(0) - x(d.value); })
-
 		svg.selectAll("rectleft")
 			.data(data).enter()
 				.append("rect")
 				  .attr("class", "bar")
 				  .attr("y", function(d) { return y(d.fname); })
 				  .attr("height", y.rangeBand())
-				  .attr("width", function(d) { return xL(100 * d.count / docnum); })
-				  .attr("x", function(d) { return xL(0) - xL(100 * d.count/docnum);}) //function(d) { return x(d.std_deviation / d.avg); })
+				  .attr("width", function(d) { return (xL(0) - xL(100 * d.count / docnum)); })
+				  .attr("x", function(d) { return (width/2-gap/2)-(xL(0) - xL(100 * d.count/docnum));})
+				  //function(d) { return x(d.std_deviation / d.avg); })
 				  .on('mouseover', tipL.show)
 				  .on('mouseout', tipL.hide)
 				  .on("click", function(d) {console.log("event = ", d.fname)})

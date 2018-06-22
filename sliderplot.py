@@ -28,6 +28,8 @@ import pandas as pd
 
 es = Elasticsearch('http://localhost:9200')
 
+#input =
+
 q =  {
         "bool": {
             "must": [{
@@ -85,20 +87,6 @@ data['month'] = data.starttime1.dt.month
 data['scene_lat'] = (data['westboundingcoor0'] + data['eastboundingcoor0']) / 2
 data['scene_lon'] = (data['northboundingcoo0'] + data['southboundingcoo0']) / 2
 
-
-def get_location(row):
-    location = []
-
-    for _,item in row.iteritems():
-        if type(item)==str and item.startswith("POLYGON(("):
-            #POLYGON((lon lat, lon2 lat2, ...., lonN latN))
-            location = [[float(x) for x in pair.strip().split(" ")] for pair in item[9:-2].split(",")]
-            return {"type":"polygon", "coordinates":[location]}
-        #return {"type": "polygon", "coordinates": [[[1.0,1.0],[1.0,10.0],[10.0,10.0],[10.0,1.0],[1.0,1.0]]]}
-        elif type(item)==str and item.startswith("POINT("):
-            location = [float(x) for x in item[6:-1].split(" ")]  
-    return {"type": "point", "coordinates":[location]}
-    return {"type": "point", "coordinates": [0.0,0.0]}
 
 # Set up worldmap data
 # from: https://gist.github.com/tonyfast/994f37c4540ce91c6784

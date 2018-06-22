@@ -124,7 +124,7 @@
 
 		var formatPercent = d3.format(".0%");
 
-		var xR = d3.scale.linear()
+		var xR = d3.scale.log()
 		    .range([width/2+gap/2, width]);
 
 		var xL = d3.scale.linear()
@@ -138,6 +138,7 @@
 			.ticks(3)
 			.orient("bottom")
 			.tickSize(3)
+			.tickFormat(function(d) { return Math.round(Math.log(d)); });
 
 
 		var xLAxis = d3.svg.axis()
@@ -177,7 +178,7 @@
 
 		data.forEach(function(d,i){
 			y.domain(data.map(function(d) { return d.fname; }));
-			xR.domain([0, d3.max(data, function(d) { return d.std_deviation / d.avg; })]);
+			xR.domain([0.5, d3.max(data, function(d) { return (Math.abs(d.std_deviation / d.avg)); })]);
 			xL.domain([0, 100]); //d3.max(data, function(d) { return 100 * d.count / docnum; })]);
 			//xLNR.domain([0, d3.max(data, function(d) { return d.count / docnum; })]);
 		});
@@ -211,7 +212,7 @@
 				  .attr("class", "bar")
 				  .attr("y", function(d) { return y(d.fname); })
 				  .attr("height", y.rangeBand())
-				  .attr("width", function(d) { return xR(-1*d.std_deviation / d.avg); })
+				  .attr("width", function(d) { return xR(Math.abs(d.std_deviation / d.avg)); })
 				  .attr("x", width/2 + gap/2) //function(d) { return x(d.std_deviation / d.avg); })
 				  .on('mouseover', tipR.show)
 				  .on('mouseout', tipR.hide)
