@@ -10,167 +10,155 @@
 <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
 <script>
     var data = {{ d3data | safe }}
+    var docnum = {{ docnum | safe }}
+
+    var gap = 10
 
     data.sort(function(x,y){
         return d3.descending(x.std_deviation / x.avg, y.std_deviation / y.avg)})
 
-    var margin = {top: 120, right: 20, bottom: 200, left: 80},
-        width = 1200 - margin.left - margin.right,
-        height = 500 - margin.top - margin.bottom;
+        var margin = {top: 60, right: 20, bottom: 80, left: 200},
+			width = 960 - margin.left - margin.right,
+			height = 1500 - margin.top - margin.bottom;
 
-    var formatPercent = d3.format(".0%");
+		var formatPercent = d3.format(".0%");
 
-    var x = d3.scale.ordinal()
-        .rangeRoundBands([0, width], .1);
+		var xR = d3.scale.log()
+		    .range([width/2+gap/2, width]);
 
-    var y = d3.scale.log()
-        .range([height, 0]);
+		var xL = d3.scale.linear()
+		    .range([width/2-gap/2, 0]);
 
-    var xAxis = d3.svg.axis()
-        .scale(x)
-        .orient("bottom");
+		var y = d3.scale.ordinal()
+		    .rangeRoundBands([height, 0], .3);
 
-    var yAxis = d3.svg.axis()
-        .scale(y)
-        .orient("left")
-        //.tickFormat(formatPercent);
+		var xRAxis = d3.svg.axis()
+			.scale(xR)
+			.ticks(3)
+			.orient("bottom")
+			.tickSize(3)
 
-    var tip = d3.tip()
-      .attr('class', 'd3-tip')
-      .offset([-10, 0])
-      .html(function(d) {
-        return d.fname + ": " + d3.format(".4f")(d.std_deviation / d.avg);
-      })
 
-    var svg = d3.select("body").append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-      .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+		var xLAxis = d3.svg.axis()
+			.scale(xL)
+			.ticks(3)
+			.orient("bottom")
+			.tickSize(3)
+			//.tickFormat(function(d) { return Math.round(Math.log(d)); });
 
-    svg.call(tip);
+		var yAxis = d3.svg.axis()
+		    .scale(y)
+		    .tickSize(3)
+		    .orient("left");
 
-    data.forEach(function(d,i){
-        x.domain(data.map(function(d) { return d.fname; }));
-        y.domain([1e-6, d3.max(data, function(d) { return d.std_deviation / d.avg; })]);
-    });
+		var tipL = d3.tip()
+		  .attr('class', 'd3-tip')
+		  .offset([0, 0])
+		  .html(function(d) {
+			return d.fname + ": " + d3.format(".4f")((d.count / docnum));
+		  })
+
+		var tipR = d3.tip()
+		  .attr('class', 'd3-tip')
+		  .offset([0, 0])
+		  .html(function(d) {
+			return d.fname + ": " + d3.format(".4f")(d.std_deviation / d.avg);
+		  })
+
+		var svg = d3.select("body").append("svg")
+			.attr("width", width + margin.left + margin.right)
+			.attr("height", height + margin.top + margin.bottom)
+		  .append("g")
+			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+		svg.call(tipL);
+		svg.call(tipR);
+
+		data.forEach(function(d,i){
+			y.domain(data.map(function(d) { return d.fname; }));
+			xR.domain([1e-6, d3.max(data, function(d) { return d.std_deviation / d.avg; })]);
+			xL.domain([0, 100]); //d3.max(data, function(d) { return 100 * d.count / docnum; })]);
+		});
+
+
+
+	 svg.append("g")
+		  .attr("class", "x axis")
+		  .attr("transform", "translate(0," + height + ")")
+		  .call(xRAxis) //.ticks(10, "%"))
+
+	 svg.append("g")
+		  .attr("class", "x axis")
+		  .attr("transform", "translate(0," + height + ")")
+		  .call(xLAxis) //.ticks(10,"%"))
 
 	  svg.append("g")
-		  .attr("class", "axis axis--x")
-		  .attr("transform", "translate(0," + height + ")")
-		  .call(xAxis)
-		  .selectAll("text")
-				.style("text-anchor", "end")
-				.attr("dx", "-.4em")
-                .attr("dy", "-.3em")
-				.attr("transform", "rotate(-90)");
+		  .attr("class", "axis--y")
+		  //.attr("transform", "translate(" + width + ",0)")
+		  .call(yAxis)
+		.append("text")
+		  .attr("class", "text")
+		  .attr("transform", "rotate(-90)")
+		  .attr("y", 3)
+		  .attr("dy", "0.2em")
+		  .attr("text-anchor", "end");
 
-  svg.append("g")
-      .attr("class", "axis axis--y")
-      .call(yAxis.ticks(5))
+		svg.selectAll("rectright")
+			.data(data).enter()
+				.append("rect")
+				  .attr("class", "bar")
+				  .attr("y", function(d) { return y(d.fname); })
+				  .attr("height", y.rangeBand())
+				  .attr("width", function(d) { return xR(Math.abs(d.std_deviation / d.avg)); })
+				  .attr("x", width/2 + gap/2) //function(d) { return x(d.std_deviation / d.avg); })
+				  .on('mouseover', tipR.show)
+				  .on('mouseout', tipR.hide)
+				  .on("click", function(d) {console.log("event = ", d.fname)})
 
-    svg.selectAll("rect")
-        .data(data)
-        .enter().append("rect")
-              .attr("class", "bar")
-              .attr("x", function(d) { return x(d.fname); })
-              .attr("width", x.rangeBand())
-              .attr("y", function(d) { return y(d.std_deviation / d.avg); })
-              .attr("height", function(d) { return height - y(d.std_deviation / d.avg); })
-              .on('mouseover', tip.show)
-              .on('mouseout', tip.hide)
-              .on("click", function(d) {console.log("event = ", d.fname)})
+//.attr("x", function(d){return x(d.value) })
+//.attr("width", function(d) { return x(0) - x(d.value); })
 
-    svg.append("text")
-        .attr("x", 0)
-        .attr("y", 0 - (margin.top / 2))
-        .attr("text-anchor", "left")
-        .style("font-size", "16px")
-        .style("font-weight", "bold")
-        .text("Coefficient of variation");
+		svg.selectAll("rectleft")
+			.data(data).enter()
+				.append("rect")
+				  .attr("class", "bar")
+				  .attr("y", function(d) { return y(d.fname); })
+				  .attr("height", y.rangeBand())
+				  .attr("width", function(d) { return xL(100 * d.count / docnum); })
+				  .attr("x", function(d) { return xL(0) - xL(100 * d.count/docnum);}) //function(d) { return x(d.std_deviation / d.avg); })
+				  .on('mouseover', tipL.show)
+				  .on('mouseout', tipL.hide)
+				  .on("click", function(d) {console.log("event = ", d.fname)})
 
 
-//Plot counts
-    var docnum = {{ docnum | safe }}
+		svg.append("text")
+		    .attr("class", "title")
+		    .attr("x", (width / 2))
+		    .attr("y", 0 - (margin.top / 2))
+		    .attr("text-anchor", "middle")
+		    .style("font-size", "16px")
+			.style("font-weight", "bold")
+		    .text("Measurements in DLR Data");
 
-    var data2 = {{ d3data | safe }}
+		svg.append("text")
+		    .attr("class", "x-label")
+		    .attr("text-anchor", "middle")
+		    .attr("x", width/2+(width/2-gap)/2)
+		    .attr("y", height+40)
+		    .text("Coefficient of variation");
 
-    data2.sort(function(x,y){
-        return d3.descending(x.count, y.count)})
+		svg.append("text")
+		    .attr("class", "x-label")
+		    .attr("text-anchor", "middle")
+		    .attr("x", (width/2-gap)/2)
+		    .attr("y", height+40)
+		    .text("Relative requency of variable");
 
-    var x2 = d3.scale.ordinal()
-		.rangeRoundBands([0, width], .1);
+		svg.select("xaxis")
+			.style("font-size","15px");
 
-	var y2 = d3.scale.linear()
-		.range([height, 0]);
-
-   var xAxis2 = d3.svg.axis()
-        .scale(x2)
-        .orient("bottom");
-
-    var yAxis2 = d3.svg.axis()
-        .scale(y2)
-        .orient("left")
-        .tickFormat(formatPercent);
-
-    var svg2 = d3.select("body").append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-      .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-    var tip2 = d3.tip()
-      .attr('class', 'd3-tip')
-      .offset([-10, 0])
-      .html(function(d) {
-        return d.fname + ": " + d3.format(".2f")(d.count / docnum);
-      })
-
-    svg2.call(tip2);
-
-    data2.forEach(function(d,i){
-        x2.domain(data2.map(function(d) { return d.fname; }));
-        y2.domain([0, d3.max(data2, function(d) { return (d.count / docnum); })]);
-    });
-
-	  svg2.append("g")
-		  .attr("class", "axis axis--x")
-		  .attr("transform", "translate(0," + height + ")")
-		  .call(xAxis2)
-		  .selectAll("text")
-				.style("text-anchor", "end")
-				.attr("dx", "-.4em")
-                .attr("dy", "-.3em")
-				.attr("transform", "rotate(-90)");
-
-  svg2.append("g")
-      .attr("class", "axis axis--y")
-      .call(yAxis2) //.ticks(5, "%"))
-    .append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 6)
-      .attr("dy", "0.71em")
-      .attr("text-anchor", "end");
-
-    svg2.selectAll("rect")
-        .data(data2)
-        .enter().append("rect")
-              .attr("class", "bar")
-              .attr("x", function(d) { return x2(d.fname); })
-              .attr("width", x2.rangeBand())
-              .attr("y", function(d) { return y2(d.count / docnum); })
-              .attr("height", function(d) { return height - y2(d.count / docnum); })
-              .on('mouseover', tip2.show)
-              .on('mouseout', tip2.hide)
-              .on("click", function(d) {console.log("event = ", d.fname)})
-
-    svg2.append("text")
-        .attr("x",0)
-        .attr("y", 0 - (margin.top / 2))
-        .attr("text-anchor", "left")
-        .style("font-size", "16px")
-        .style("font-weight", "bold")
-        .text("Commonness of variable ");
+		svg.select("yaxis")
+			.style("font-size","15px");
 </script>
 <!-- 
 
