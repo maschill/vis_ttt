@@ -1,21 +1,37 @@
 from api import bp
 from elasticsearch import Elasticsearch
 from flask import jsonify, request
-import datetime
+import datetime, json
 from collections import defaultdict
+import pandas as pd
+
+from bokeh.client import pull_session
+from bokeh.embed import server_session
 
 es = Elasticsearch('http://localhost:9200')
 
-@bp.route('/<starttime>', methods=['GET'])
+@bp.route('/st/<starttime>', methods=['GET'])
 def get_starttime(starttime):
 	resp = es.search(index='dlrmetadata', doc_type='doc', body={"query": {"match": {"starttime1":
 		            datetime.datetime.strptime(starttime, '%Y-%m-%d %H:%M:%S.%f')}}})
 	return jsonify(resp)
 
+@bp.route("/_bokeh_data", methods=["GET", "POST"])
+def bokeh_serv():
+	with open('data.json', 'r') as infile:
+		return jsonify(json.load(infile))
+
+
 @bp.route('/filter', methods=['GET', 'POST'])
 def filter_data():
 	rang = defaultdict(dict)
 	match = defaultdict(dict)
+
+	with pull_session(url="http://localhost:5006/sliderplot") as session:
+	    # update or customize that session
+		print(session.document.roots[0].children[1].title.text)
+		session.document.roots[0].children[1].title.text = "Special Sliders For A Specific User!"
+
 
 	print(match)
 	match['mission0'] = ''
@@ -72,7 +88,11 @@ def filter_data():
 	print(request.args.get("starttimeMin"))
 
 	resp = es.search(index='dlrmetadata', doc_type='doc', body={"query":q}, size=500)
-	#print(resp)
+
+
+	with open("data.json", "w") as file:
+		json.dump(resp,file)
+
 	return jsonify(resp)
 
 @bp.route('/all', methods=['GET'])
