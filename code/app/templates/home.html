@@ -5,9 +5,8 @@
 <h1>Also: Best UX by far!</h1>
 <p>Home - Analytics - Visualization</p>
 
-<div class="chart"></div>
-<script src="http://d3js.org/d3.v3.min.js"></script>
-<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+<div id="chart">chart here</div>
+
 <script>
     var data = {{ d3data | safe }}
 
@@ -65,7 +64,7 @@
 			return d.fname + ": " + d3.format(".2f")(Math.abs(d.std_deviation / d.avg));
 		  })
 
-		var svg = d3.select("body").append("svg")
+		var svg = d3.select("#chart").append("svg")
 			.attr("width", width + margin.left + margin.right)
 			.attr("height", height + margin.top + margin.bottom)
 		  .append("g")
@@ -206,9 +205,6 @@
 
 </table>
 
-plot start
-<div class="col-md-12">{{ script|safe }}</div>
-plot end
 
 <script type="text/javascript">
      $(function() {    
@@ -251,5 +247,6 @@ plot end
 
 
 </script>
+<div class="col-md-12">{{ script|safe }}</div>
 
 {% endblock %}
