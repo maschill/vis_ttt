@@ -44,7 +44,6 @@ def get_measured_variables():
 
 	variable_description = []
 	for col in filename_field:
-		#print(col)
 		q = {"size": 0,
 		     "aggregations": {
 			     "variance_field": {
@@ -58,7 +57,8 @@ def get_measured_variables():
 		                 filter_path=['aggregations.variance_field'])
 		if not 'lon' in col and not 'lat' in col and not 'coo' in col:# and col != 'heightofambiguit0' and col != 'tilt_angle0' and col != 'meandifferenceto1':
 			resp['aggregations']['variance_field']['fname'] = col
-			variable_description += [resp['aggregations']['variance_field']]
+			if resp['aggregations']['variance_field']['count'] > 0:
+				variable_description += [resp['aggregations']['variance_field']]
 
 	return variable_description
 
@@ -70,7 +70,6 @@ def index():
 	plots.append(make_plot())
 	d3data = get_measured_variables()
 	docnum = es.count(index='dlrmetadata', filter_path=['count'])['count']
-
 	levels  = df.col3.unique()
 	min_c2 = df.col2.min()
 	max_c2 =  df.col2.max()
