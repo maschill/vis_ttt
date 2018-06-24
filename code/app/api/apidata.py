@@ -16,10 +16,38 @@ def get_starttime(starttime):
 def filter_data():
 	rang = defaultdict(dict)
 	match = defaultdict(dict)
+
+	print(match)
 	match['mission0'] = ''
 
-	if "mission0" in request.args:
-		match['mission0'] = request.args.get("mission0")
+	query = {
+		"must":[
+			{"range":{"stoptime1":rang["stoptime1"]}},
+			{"range":{"starttime1": rang["starttime1"]}}
+		],
+	}
+
+	# Add geo shape filter if values entered
+	geo_filter = {
+		"geo_shape": {
+			"location": {
+				"shape": {
+					"type": "point"
+				},
+				"relation": "INTERSECTS"
+			}
+		}
+	}
+
+
+	if request.args.get('longitude') != "" and request.args.get('latitude') != "":
+		geo_filter['geo_shape']['location']['shape']['coordinated'] = [float(request.args.get('longitude').replace('_', '.')),
+						                float(request.args.get('latitude').replace('_', '.'))]
+		query['filter'] = geo_filter
+
+
+	#if "mission0" in request.args:
+#		match['mission0'] = request.args.get("mission0")
 
 	if "starttimeMin" in request.args:
 		rang["starttime1"]["gte"] = request.args.get("starttimeMin")
@@ -33,30 +61,6 @@ def filter_data():
 	rang['stoptime1']['format'] = "yyyy-MM-dd"
 	rang['starttime1']['format'] = "yyyy-MM-dd"
 
-	query = {
-		"must":[
-			{"range":{"stoptime1":rang["stoptime1"]}},
-			{"range":{"starttime1": rang["starttime1"]}}
-		],
-		#Geo shape
-		"filter": {
-			"geo_shape": {
-				"location": {
-					"shape": {
-						"type": "point",
-						"coordinates": [float(request.args.get('longitude').replace('_', '.')),
-						                float(request.args.get('latitude').replace('_', '.'))
-						                ]
-						#"coordinates": [15.0,15.0]
-						#"type": "polygon",
-						#"coordinates": [[[1.0, 1.0], [3.0, 3.0], [10.0,10.0], [15.0,15.0], [1.0,1.0]]]
-					},
-					"relation": "INTERSECTS"
-				}
-			}
-		}
-	}
-
 	if match['mission0'] != '':
 		query["must"].append({"match": {"mission0":request.args.get("mission0")}}) 
 
@@ -68,7 +72,7 @@ def filter_data():
 	print(request.args.get("starttimeMin"))
 
 	resp = es.search(index='dlrmetadata', doc_type='doc', body={"query":q}, size=500)
-	print(resp)
+	#print(resp)
 	return jsonify(resp)
 
 @bp.route('/all', methods=['GET'])
