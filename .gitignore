@@ -3,3 +3,11 @@ data/*
 code/app/files.pyc
 **/__pycache__/*
 code/elasticSearch.py.orig
+.ipynb_checkpoints/
+Cloud_coverage_lea.ipynb
+Jenette_water_percentage_bokehversion.ipynb
+color_bar.html
+gmap.html
+tile.html
+variable_visualization.ipynb
+

@@ -157,7 +157,7 @@
 		  .attr('class', 'd3-tip')
 		  .offset([0, 0])
 		  .html(function(d) {
-			return d.fname + ": " + d3.format(".4f")((d.count / docnum));
+			return d.fname + ": " + d3.format(".4f")(( 100 * d.count / docnum));
 		  })
 
 		var tipR = d3.tip()
@@ -227,7 +227,7 @@
 				  .attr("class", "bar")
 				  .attr("y", function(d) { return y(d.fname); })
 				  .attr("height", y.rangeBand())
-				  .attr("width", function(d) { return xL(100 * d.count / docnum); })
+				  .attr("width", function(d) { return xL(100 * d.count/docnum); })
 				  .attr("x", function(d) { return xL(0) - xL(100 * d.count/docnum);}) //function(d) { return x(d.std_deviation / d.avg); })
 				  .on('mouseover', tipL.show)
 				  .on('mouseout', tipL.hide)

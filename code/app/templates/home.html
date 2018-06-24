@@ -5,9 +5,34 @@
 <h1>Also: Best UX by far!</h1>
 <p>Home - Analytics - Visualization</p>
 
-<div class="chart"></div>
-<script src="http://d3js.org/d3.v3.min.js"></script>
-<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+<button type="button" class="btn border border-dark btn-default float-sm-right" id="data_request_btn">Request Data</button>
+
+<p id="dyn_block"> Start Content</p>
+<br>
+<br><br><br>
+<label for="mission0">Mission Name:</label>
+<input type="text", value = "", id="mission0", class="form-control float-sm-right col-md-6">
+
+<br><br>
+<label for="starttimeMin">Select Starttime</label>
+<input type="text" id="starttimeMin" value="1900-01-01", class="form_datetime form-control col-md-4 float-sm-right" />
+<input type="text" id="starttimeMax" value="2020-12-24", class="form_datetime form-control col-md-4 float-sm-right" />
+
+<br><br>
+<label for="latitude_longitude">Laditude, Longitude (use "_" instead of floating point)</label>
+<input type="text" id="latitude_longitude" value="", class="form_datetime form-control col-md-4 float-sm-right" />
+<br><br>
+
+<label for="measure_variable">Variable</label>
+<input type="text" id="measure_variable" value="percentageofpote1", class="form_datetime form-control col-md-4 float-sm-right" />
+<br><br>
+
+<div>
+<div id="d3_xaxis">dingidngidng</div>
+<div id="chart" style="overflow:scroll; height:300px;"></div>
+</div>
+
+
 <script>
     var data = {{ d3data | safe }}
 
@@ -65,11 +90,18 @@
 			return d.fname + ": " + d3.format(".2f")(Math.abs(d.std_deviation / d.avg));
 		  })
 
-		var svg = d3.select("body").append("svg")
+		var svg = d3.select("#chart").append("svg")
 			.attr("width", width + margin.left + margin.right)
 			.attr("height", height + margin.top + margin.bottom)
 		  .append("g")
 			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+		var svg_footer = d3.select("#d3_xaxis").append("svg")
+			.attr("width", width + margin.left + margin.right)
+			.attr("height", 88)
+		  .append("g")
+			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
 
 		svg.call(tipL);
 		svg.call(tipR);
@@ -82,12 +114,12 @@
 
 
 
-	 svg.append("g")
+	 svg_footer.append("g")
 		  .attr("class", "x axis")
-		  .attr("transform", "translate(" + (width+gap)/2 + "," + height + ")")
+		  .attr("transform", "translate(" + (width+gap)/2 + "," +0+ ")")
 		  .call(xRAxis) //.ticks(10, "%"))
 
-	 svg.append("g")
+	 svg_footer.append("g")
 		  .attr("class", "x axis")
 		  .attr("transform", "translate(0," + height + ")")
 		  .call(xLAxis) //.ticks(10,"%"))
@@ -113,7 +145,7 @@
 				  .attr("x", width/2 + gap/2) //function(d) { return x(d.std_deviation / d.avg); })
 				  .on('mouseover', tipR.show)
 				  .on('mouseout', tipR.hide)
-				  .on("click", function(d) {console.log("event = ", d.fname)})
+				  .on("click", function(d) {$("#measure_variable").val(d.fname); })
 
 		svg.selectAll("rectleft")
 			.data(data).enter()
@@ -126,7 +158,8 @@
 				  //function(d) { return x(d.std_deviation / d.avg); })
 				  .on('mouseover', tipL.show)
 				  .on('mouseout', tipL.hide)
-				  .on("click", function(d) {console.log("event = ", d.fname)})
+				  .on("click", function(d) {$("#measure_variable").val(d.fname); })
+				  //.on("click", function(d) {console.log("event = ", d.fname)})
 
 
 		svg.append("text")
@@ -158,67 +191,39 @@
 		svg.select("yaxis")
 			.style("font-size","15px");
 </script>
-<!-- 
 
-<button type="button" class="btn border border-dark btn-default float-sm-right" id="data_request_btn">Request Data</button>
+<button type="button" class="btn border border-dark btn-default float-sm-right m-5 px-5" id="data_show_toggle">Show Data</button>
+<a href="/csv/"><button type="button" class="btn border border-dark btn-default float-sm-right m-5 px-5" id="data_download">Download Data</button></a>
 
-<p id="dyn_block"> Start Content</p>
-<br>
-<br><br><br>
-<label for="mission0">Mission Name:</label>
-<input type="text", value = "", id="mission0", class="form-control float-sm-right col-md-6">
-
-<br><br>
-<label for="starttimeMin">Select Starttime</label>
-<input type="text" id="starttimeMin" value="1900-01-01", class="form_datetime form-control col-md-4 float-sm-right" />
-<input type="text" id="starttimeMax" value="2020-12-24", class="form_datetime form-control col-md-4 float-sm-right" />
-
-<br><br>
-<label for="stoptimeMin">Select Stoptime</label>
-<input type="text" id="stoptimeMin" value="1900-01-01", class="form_datetime form-control col-md-4 float-sm-right" />
-<input type="text" id="stoptimeMax" value="2020-12-31", class="form_datetime form-control col-md-4 float-sm-right" />
-<br><br><br>
-
-
-<label for="laditude">Laditude (use "_" instead of floating point)</label>
-<input type="text" id="laditude" value="0_000", class="form_datetime form-control col-md-4 float-sm-right" />
-<br><br>
-<label for="longitude">Longitude (use "_" instead of floating point)</label>
-<input type="text" id="longitude" value="0_000", class="form_datetime form-control col-md-4 float-sm-right" />
-<br><br>
-
-<table id="testTable" class="table table-striped">
+<table id="testTable" visi class="table table-striped">
     <thead>
         <tr class="thead-dark">
             <th>Mission</th>
-            <th>Starttime</th>   
+            <th>Starttime</th>
             <th>Stoptime</th>
             <th>Coordinates</th>
         </tr>
     </thead>
     <tbody>
         <tr>
-            <td>value 1</td>
-            <td>value 2</td>
-            <td>value 3</td>
-            <td>value 4</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
         </tr>
     </tbody>
-
 </table>
 
-<p>plot start</p>
-{% for plot in plots %}
-    {% for part in plot %}
-        {{part | safe}}
-    {% endfor %}
-{% endfor %} 
-<p>plot end</p> -->
-<div class="col-md-12">{{ script|safe }}</div>
-
-
+<br>
+<br>
+<br>
 <script type="text/javascript">
      $(function() {    
+		$( "#testTable" ).hide();
+		$( "#data_show_toggle" ).click(function() {
+   			 $( "#testTable" ).toggle();
+		});
+		
         $("#data_request_btn").click(function(){
             $("#dyn_block").html("Working");
             $.ajax({
@@ -229,10 +234,8 @@
                 url:"/api/filter?mission0=" + $("#mission0").val() 
                             +   "&starttimeMin=" + $("#starttimeMin").val()
                             +   "&starttimeMax=" + $("#starttimeMax").val()
-                            +   "&stoptimeMin=" + $("#stoptimeMin").val()
-                            +   "&stoptimeMax=" + $("#stoptimeMax").val()
-                            +   "&longitude=" + $("#longitude").val()
-                            +   "&latitude=" + $("#laditude").val(),
+                            +   "&latitude_longitude=" + $("#latitude_longitude").val()
+                            +   "&measure_variable=" + $("#measure_variable").val(),
                 data:{},
                 contentType: 'application/json;charset=UTF-8',
                 cache: false,
@@ -245,7 +248,6 @@
                             "<tr>"
                                 + "<td>" + data.hits.hits[i]._source.mission0 + "</td>"
                                 + "<td>" + data.hits.hits[i]._source.starttime1 + "</td>"
-                                + "<td>" + data.hits.hits[i]._source.stoptime1 + "</td>"
                                 + "<td>" + data.hits.hits[i]._source.coordinates + "</td>"
                             + "</tr>"
                         );

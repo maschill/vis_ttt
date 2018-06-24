@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, make_response  
 from elasticsearch import Elasticsearch
 from files import filesfromEL
 import tempfile
@@ -13,7 +13,7 @@ col1 = [''.join(['val', str(x)]) for x in range(10)]
 col2 = [x for x in range(10)]
 col3 = ['red', 'green', 'blue', 'green', 'red', 'blue', 'red', 'yellow', 'red', 'green']
 df = pd.DataFrame({"col1":col1, "col2":col2, "col3":col3})
-
+df.to_json("data.json")
 es = Elasticsearch([{'host':'localhost','port': 9200}], timeout=1000)
 app = Flask(__name__)
 
@@ -23,7 +23,7 @@ app.register_blueprint(api_bp, url_prefix='/api')
 sys.path.insert(0,'../')
 import  elasticSearch
 
-Files = filesfromEL(es=es)
+Files = filesfromEL(es=es)	
 #print(Files)
 
 def make_plot():
@@ -44,7 +44,6 @@ def get_measured_variables():
 
 	variable_description = []
 	for col in filename_field:
-		#print(col)
 		q = {"size": 0,
 		     "aggregations": {
 			     "variance_field": {
@@ -58,23 +57,32 @@ def get_measured_variables():
 		                 filter_path=['aggregations.variance_field'])
 		if not 'lon' in col and not 'lat' in col and not 'coo' in col:# and col != 'heightofambiguit0' and col != 'tilt_angle0' and col != 'meandifferenceto1':
 			resp['aggregations']['variance_field']['fname'] = col
-			variable_description += [resp['aggregations']['variance_field']]
+			if resp['aggregations']['variance_field']['count'] > 0:
+				variable_description += [resp['aggregations']['variance_field']]
 
 	return variable_description
+
+@app.route('/csv/')
+def download_csv():
+	##get current data
+	csv = pd.read_json("data.json").to_csv()
+	response = make_response(csv)
+	cd = 'attachment; filename=data.csv'
+	response.headers['Content-Disposition'] = cd 
+	response.mimetype='text/csv'
+
+	return response
 
 @app.route('/')
 def index():
 	script = server_document("http://localhost:5006/sliderplot")
 	
-	plots = []
-	plots.append(make_plot())
 	d3data = get_measured_variables()
 	docnum = es.count(index='dlrmetadata', filter_path=['count'])['count']
-
 	levels  = df.col3.unique()
 	min_c2 = df.col2.min()
 	max_c2 =  df.col2.max()
-	return render_template('home.html', levels=levels, min_c2=min_c2, max_c2=max_c2, plots=plots, script=script, d3data=d3data, docnum=docnum)
+	return render_template('home.html', levels=levels, min_c2=min_c2, max_c2=max_c2, script=script, d3data=d3data, docnum=docnum)
 
 @app.route('/data_servant', methods=['POST', 'GET'])
 def data_servant():
