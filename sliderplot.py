@@ -63,7 +63,7 @@ q =  {
 
 
 all_data = []
-resp = es.search(index='dlrmetadata', doc_type='doc', body={"query":q}, size=1000,   scroll = '2m')
+resp = es.search(index='dlrmetadata', doc_type='doc', body={"query":q}, size=10000,   scroll = '2m')
 sid = resp['_scroll_id']
 scroll_size = resp['hits']['total']
 while (scroll_size > 0):
@@ -74,8 +74,9 @@ while (scroll_size > 0):
     # Get the number of results that we returned in the last scroll
     scroll_size = len(resp['hits']['hits'])
     
-    df = pd.DataFrame(all_data)
-    df['starttime1']=pd.to_datetime(df['starttime1']*1000000)
+df = pd.DataFrame(all_data)
+df['starttime1']=pd.to_datetime(df['starttime1'])
+print('something something ... dark side')
 
 print('Dataframe received')
 # Change values to datetime for plotting issues

@@ -66,14 +66,12 @@ def get_measured_variables():
 def index():
 	script = server_document("http://localhost:5006/sliderplot")
 	
-	plots = []
-	plots.append(make_plot())
 	d3data = get_measured_variables()
 	docnum = es.count(index='dlrmetadata', filter_path=['count'])['count']
 	levels  = df.col3.unique()
 	min_c2 = df.col2.min()
 	max_c2 =  df.col2.max()
-	return render_template('home.html', levels=levels, min_c2=min_c2, max_c2=max_c2, plots=plots, script=script, d3data=d3data, docnum=docnum)
+	return render_template('home.html', levels=levels, min_c2=min_c2, max_c2=max_c2, script=script, d3data=d3data, docnum=docnum)
 
 @app.route('/data_servant', methods=['POST', 'GET'])
 def data_servant():

@@ -158,7 +158,6 @@
 		svg.select("yaxis")
 			.style("font-size","15px");
 </script>
-<!-- 
 
 <button type="button" class="btn border border-dark btn-default float-sm-right" id="data_request_btn">Request Data</button>
 
@@ -207,15 +206,9 @@
 
 </table>
 
-<p>plot start</p>
-{% for plot in plots %}
-    {% for part in plot %}
-        {{part | safe}}
-    {% endfor %}
-{% endfor %} 
-<p>plot end</p> -->
+plot start
 <div class="col-md-12">{{ script|safe }}</div>
-
+plot end
 
 <script type="text/javascript">
      $(function() {    
