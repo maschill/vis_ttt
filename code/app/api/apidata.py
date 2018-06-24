@@ -22,13 +22,16 @@ def filter_data():
 		match['mission0'] = request.args.get("mission0")
 
 	if "starttimeMin" in request.args:
-		rang["starttime1"]["gte"] = datetime.datetime.strptime(request.args.get("starttimeMin"), '%Y-%m-%d')
+		rang["starttime1"]["gte"] = request.args.get("starttimeMin")
 	if "stoptimeMin" in request.args: 
-		rang["stoptime1"]["gte"] = datetime.datetime.strptime(request.args.get("stoptimeMin"), '%Y-%m-%d')
+		rang["stoptime1"]["gte"] = request.args.get("stoptimeMin")
 	if "starttimeMax" in request.args:
-		rang["starttime1"]["lte"] = datetime.datetime.strptime(request.args.get("starttimeMax"), '%Y-%m-%d')
+		rang["starttime1"]["lte"] = request.args.get("starttimeMax")
 	if "stoptimeMax" in request.args:
-		rang["stoptime1"]["lte"] = datetime.datetime.strptime(request.args.get("stoptimeMax"), '%Y-%m-%d')
+		rang["stoptime1"]["lte"] = request.args.get("stoptimeMax")
+		
+	rang['stoptime1']['format'] = "yyyy-MM-dd"
+	rang['starttime1']['format'] = "yyyy-MM-dd"
 
 	query = {
 		"must":[

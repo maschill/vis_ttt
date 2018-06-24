@@ -5,7 +5,11 @@
 <h1>Also: Best UX by far!</h1>
 <p>Home - Analytics - Visualization</p>
 
-<div id="chart">chart here</div>
+<div>
+<div id="d3_xaxis">dingidngidng</div>
+<div id="chart" style="overflow:scroll; height:300px;"></div>
+</div>
+
 
 <script>
     var data = {{ d3data | safe }}
@@ -69,6 +73,13 @@
 			.attr("height", height + margin.top + margin.bottom)
 		  .append("g")
 			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+		
+		var svg_footer = d3.select("#d3_xaxis").append("svg")
+			.attr("width", width + margin.left + margin.right)
+			.attr("height", 88)
+		  .append("g")
+			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
 
 		svg.call(tipL);
 		svg.call(tipR);
@@ -81,12 +92,12 @@
 
 
 
-	 svg.append("g")
+	 svg_footer.append("g")
 		  .attr("class", "x axis")
-		  .attr("transform", "translate(" + (width+gap)/2 + "," + height + ")")
+		  .attr("transform", "translate(" + (width+gap)/2 + "," +0+ ")")
 		  .call(xRAxis) //.ticks(10, "%"))
 
-	 svg.append("g")
+	 svg_footer.append("g")
 		  .attr("class", "x axis")
 		  .attr("transform", "translate(0," + height + ")")
 		  .call(xLAxis) //.ticks(10,"%"))
