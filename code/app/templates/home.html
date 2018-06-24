@@ -5,6 +5,28 @@
 <h1>Also: Best UX by far!</h1>
 <p>Home - Analytics - Visualization</p>
 
+<button type="button" class="btn border border-dark btn-default float-sm-right" id="data_request_btn">Request Data</button>
+
+<p id="dyn_block"> Start Content</p>
+<br>
+<br><br><br>
+<label for="mission0">Mission Name:</label>
+<input type="text", value = "", id="mission0", class="form-control float-sm-right col-md-6">
+
+<br><br>
+<label for="starttimeMin">Select Starttime</label>
+<input type="text" id="starttimeMin" value="1900-01-01", class="form_datetime form-control col-md-4 float-sm-right" />
+<input type="text" id="starttimeMax" value="2020-12-24", class="form_datetime form-control col-md-4 float-sm-right" />
+
+<br><br>
+<label for="latitude_longitude">Laditude, Longitude (use "_" instead of floating point)</label>
+<input type="text" id="latitude_longitude" value="", class="form_datetime form-control col-md-4 float-sm-right" />
+<br><br>
+
+<label for="measure_variable">Variable</label>
+<input type="text" id="measure_variable" value="percentageofpote1", class="form_datetime form-control col-md-4 float-sm-right" />
+<br><br>
+
 <div>
 <div id="d3_xaxis">dingidngidng</div>
 <div id="chart" style="overflow:scroll; height:300px;"></div>
@@ -73,7 +95,7 @@
 			.attr("height", height + margin.top + margin.bottom)
 		  .append("g")
 			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-		
+
 		var svg_footer = d3.select("#d3_xaxis").append("svg")
 			.attr("width", width + margin.left + margin.right)
 			.attr("height", 88)
@@ -123,7 +145,7 @@
 				  .attr("x", width/2 + gap/2) //function(d) { return x(d.std_deviation / d.avg); })
 				  .on('mouseover', tipR.show)
 				  .on('mouseout', tipR.hide)
-				  .on("click", function(d) {console.log("event = ", d.fname)})
+				  .on("click", function(d) {$("#measure_variable").val(d.fname); })
 
 		svg.selectAll("rectleft")
 			.data(data).enter()
@@ -136,7 +158,8 @@
 				  //function(d) { return x(d.std_deviation / d.avg); })
 				  .on('mouseover', tipL.show)
 				  .on('mouseout', tipL.hide)
-				  .on("click", function(d) {console.log("event = ", d.fname)})
+				  .on("click", function(d) {$("#measure_variable").val(d.fname); })
+				  //.on("click", function(d) {console.log("event = ", d.fname)})
 
 
 		svg.append("text")
@@ -169,38 +192,12 @@
 			.style("font-size","15px");
 </script>
 
-<button type="button" class="btn border border-dark btn-default float-sm-right" id="data_request_btn">Request Data</button>
-
-<p id="dyn_block"> Start Content</p>
-<br>
-<br><br><br>
-<label for="mission0">Mission Name:</label>
-<input type="text", value = "", id="mission0", class="form-control float-sm-right col-md-6">
-
-<br><br>
-<label for="starttimeMin">Select Starttime</label>
-<input type="text" id="starttimeMin" value="1900-01-01", class="form_datetime form-control col-md-4 float-sm-right" />
-<input type="text" id="starttimeMax" value="2020-12-24", class="form_datetime form-control col-md-4 float-sm-right" />
-
-<br><br>
-<label for="stoptimeMin">Select Stoptime</label>
-<input type="text" id="stoptimeMin" value="1900-01-01", class="form_datetime form-control col-md-4 float-sm-right" />
-<input type="text" id="stoptimeMax" value="2020-12-31", class="form_datetime form-control col-md-4 float-sm-right" />
-<br><br><br>
-
-
-<label for="laditude">Laditude (use "_" instead of floating point)</label>
-<input type="text" id="laditude" value="0_000", class="form_datetime form-control col-md-4 float-sm-right" />
-<br><br>
-<label for="longitude">Longitude (use "_" instead of floating point)</label>
-<input type="text" id="longitude" value="0_000", class="form_datetime form-control col-md-4 float-sm-right" />
-<br><br>
 
 <table id="testTable" class="table table-striped">
     <thead>
         <tr class="thead-dark">
             <th>Mission</th>
-            <th>Starttime</th>   
+            <th>Starttime</th>
             <th>Stoptime</th>
             <th>Coordinates</th>
         </tr>
@@ -229,10 +226,8 @@
                 url:"/api/filter?mission0=" + $("#mission0").val() 
                             +   "&starttimeMin=" + $("#starttimeMin").val()
                             +   "&starttimeMax=" + $("#starttimeMax").val()
-                            +   "&stoptimeMin=" + $("#stoptimeMin").val()
-                            +   "&stoptimeMax=" + $("#stoptimeMax").val()
-                            +   "&longitude=" + $("#longitude").val()
-                            +   "&latitude=" + $("#laditude").val(),
+                            +   "&latitude_longitude=" + $("#latitude_longitude").val()
+                            +   "&measure_variable=" + $("#measure_variable").val(),
                 data:{},
                 contentType: 'application/json;charset=UTF-8',
                 cache: false,
@@ -245,7 +240,6 @@
                             "<tr>"
                                 + "<td>" + data.hits.hits[i]._source.mission0 + "</td>"
                                 + "<td>" + data.hits.hits[i]._source.starttime1 + "</td>"
-                                + "<td>" + data.hits.hits[i]._source.stoptime1 + "</td>"
                                 + "<td>" + data.hits.hits[i]._source.coordinates + "</td>"
                             + "</tr>"
                         );

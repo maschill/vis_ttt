@@ -17,12 +17,10 @@ def filter_data():
 	rang = defaultdict(dict)
 	match = defaultdict(dict)
 
-	print(match)
 	match['mission0'] = ''
 
 	query = {
 		"must":[
-			{"range":{"stoptime1":rang["stoptime1"]}},
 			{"range":{"starttime1": rang["starttime1"]}}
 		],
 	}
@@ -39,10 +37,9 @@ def filter_data():
 		}
 	}
 
-
-	if request.args.get('longitude') != "" and request.args.get('latitude') != "":
-		geo_filter['geo_shape']['location']['shape']['coordinated'] = [float(request.args.get('longitude').replace('_', '.')),
-						                float(request.args.get('latitude').replace('_', '.'))]
+	if request.args.get('latitude_longitude') != "" and request.args.get('latitude_longitude') != 'None':
+		geo_filter['geo_shape']['location']['shape']['coordinated'] = [float(request.args.get('latitude_longitude').split(',')[0].strip().replace('_', '.')),
+						                float(request.args.get('latitude_longitude').split(',')[1].strip().replace('_', '.'))]
 		query['filter'] = geo_filter
 
 
@@ -51,12 +48,8 @@ def filter_data():
 
 	if "starttimeMin" in request.args:
 		rang["starttime1"]["gte"] = request.args.get("starttimeMin")
-	if "stoptimeMin" in request.args: 
-		rang["stoptime1"]["gte"] = request.args.get("stoptimeMin")
 	if "starttimeMax" in request.args:
 		rang["starttime1"]["lte"] = request.args.get("starttimeMax")
-	if "stoptimeMax" in request.args:
-		rang["stoptime1"]["lte"] = request.args.get("stoptimeMax")
 		
 	rang['stoptime1']['format'] = "yyyy-MM-dd"
 	rang['starttime1']['format'] = "yyyy-MM-dd"
@@ -66,13 +59,8 @@ def filter_data():
 
 	q = {"bool":query}
 
-
-	print('mission: ', request.args.get("mission0"))
-	print('q: ', query)
-	print(request.args.get("starttimeMin"))
-
 	resp = es.search(index='dlrmetadata', doc_type='doc', body={"query":q}, size=500)
-	#print(resp)
+	print(resp)
 	return jsonify(resp)
 
 @bp.route('/all', methods=['GET'])
