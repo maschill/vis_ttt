@@ -192,8 +192,10 @@
 			.style("font-size","15px");
 </script>
 
+<button type="button" class="btn border border-dark btn-default float-sm-right m-5 px-5" id="data_show_toggle">Show Data</button>
+<a href="/csv/"><button type="button" class="btn border border-dark btn-default float-sm-right m-5 px-5" id="data_download">Download Data</button></a>
 
-<table id="testTable" class="table table-striped">
+<table id="testTable" visi class="table table-striped">
     <thead>
         <tr class="thead-dark">
             <th>Mission</th>
@@ -204,18 +206,24 @@
     </thead>
     <tbody>
         <tr>
-            <td>value 1</td>
-            <td>value 2</td>
-            <td>value 3</td>
-            <td>value 4</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
         </tr>
     </tbody>
-
 </table>
 
-
+<br>
+<br>
+<br>
 <script type="text/javascript">
      $(function() {    
+		$( "#testTable" ).hide();
+		$( "#data_show_toggle" ).click(function() {
+   			 $( "#testTable" ).toggle();
+		});
+		
         $("#data_request_btn").click(function(){
             $("#dyn_block").html("Working");
             $.ajax({
@@ -252,6 +260,5 @@
 
 
 </script>
-<div class="col-md-12">{{ script|safe }}</div>
 
 {% endblock %}

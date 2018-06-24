@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, make_response  
 from elasticsearch import Elasticsearch
 from files import filesfromEL
 import tempfile
@@ -13,7 +13,7 @@ col1 = [''.join(['val', str(x)]) for x in range(10)]
 col2 = [x for x in range(10)]
 col3 = ['red', 'green', 'blue', 'green', 'red', 'blue', 'red', 'yellow', 'red', 'green']
 df = pd.DataFrame({"col1":col1, "col2":col2, "col3":col3})
-
+df.to_json("data.json")
 es = Elasticsearch([{'host':'localhost','port': 9200}], timeout=1000)
 app = Flask(__name__)
 
@@ -23,7 +23,7 @@ app.register_blueprint(api_bp, url_prefix='/api')
 sys.path.insert(0,'../')
 import  elasticSearch
 
-Files = filesfromEL(es=es)
+Files = filesfromEL(es=es)	
 #print(Files)
 
 def make_plot():
@@ -61,6 +61,17 @@ def get_measured_variables():
 				variable_description += [resp['aggregations']['variance_field']]
 
 	return variable_description
+
+@app.route('/csv/')
+def download_csv():
+	##get current data
+	csv = pd.read_json("data.json").to_csv()
+	response = make_response(csv)
+	cd = 'attachment; filename=data.csv'
+	response.headers['Content-Disposition'] = cd 
+	response.mimetype='text/csv'
+
+	return response
 
 @app.route('/')
 def index():
