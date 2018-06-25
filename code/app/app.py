@@ -59,7 +59,7 @@ def get_measured_variables():
 			resp['aggregations']['variance_field']['fname'] = col
 			if resp['aggregations']['variance_field']['count'] > 0:
 				variable_description += [resp['aggregations']['variance_field']]
-
+	#print(variable_description)
 	return variable_description
 
 @app.route('/csv/')
