@@ -125,7 +125,7 @@ print("You've made it this far, traveller!")
 date_slider = Slider(title="Year", value=data['year'].min(), start=data['year'].min(), end=data['year'].max(), step=1)
 #date = DateSlider(title="Month", start=data['year'].min(), end=data['year'].max(), value=data['year'].min(), step=1)
 #date = DateSlider(title="Day", start=data['date'].min(), end=data['date'].max(), value=data['date'].min(), step=1)
-param_button_group = RadioButtonGroup(labels=["Resolution", "Potential Water", "Cloud Coverage"], active=0)
+param_button_group = RadioButtonGroup(labels=["Resolution", "Potential Water", "Cloud Coverage", "Gelbstoff"], active=0)
 time_button_group = RadioButtonGroup(labels=["Yearly", "Monthly", "Daily"], active=0)
 # Set up callbacks
 
@@ -163,6 +163,8 @@ def param_radio_handler(new):
         param_choice = data['percentageofpote1']
     if str(new) == "2":
         param_choice = data['cloud_score_aver2']
+    if str(new) == "3":
+        param_choice = data['gelbstoffmax0']
     colors = ["#%02x%02x%02x" % (int(255/(r+1)), 100, 100) for r in param_choice]
     x = view['scene_lat']
     y = view['scene_lon']
