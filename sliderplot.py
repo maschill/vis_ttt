@@ -14,7 +14,7 @@ from bokeh.layouts import row, widgetbox
 from bokeh.models import ColumnDataSource
 from bokeh.models.widgets import Slider, TextInput
 from bokeh.plotting import figure
-
+from bokeh.models.sources import RemoteSource, AjaxDataSource
 import requests
 import os, glob, json
 import pandas as pd
@@ -26,11 +26,11 @@ from elasticsearch import Elasticsearch
 import datetime
 import pandas as pd
 
-es = Elasticsearch('http://localhost:9200')
-
-#input =
-
-q =  {
+#es = Elasticsearch('http://localhost:9200')
+print('GET DATA')
+all_data = AjaxDataSource(data_url='http://localhost:8000/api/_bokeh_data', polling_interval=10)
+print(all_data)
+'''q =  {
         "bool": {
             "must": [{
                 "exists": {
@@ -72,9 +72,11 @@ while (scroll_size > 0):
     # Update the scroll ID
     sid = resp['_scroll_id']
     # Get the number of results that we returned in the last scroll
-    scroll_size = len(resp['hits']['hits'])
-    
-df = pd.DataFrame(all_data)
+    scroll_size = len(resp['hits']['hits'])'''
+
+df = all_data.to_df()
+
+print(df)
 df['starttime1']=pd.to_datetime(df['starttime1'])
 print('something something ... dark side')
 

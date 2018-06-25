@@ -55,12 +55,14 @@ def clean_row(row):
 		return row
 
 
-# ToDo: include function if 'live' calculation is to slow (discuss with Jennette)
 def getpolygonmean(polygon):
-    p = polygon.strip(')POLYGON(').split(',')
-    coords = np.array([[float(x) for x in ort.strip().split(' ')] for ort in p])
-    meanlon, meanlat = coords.mean(axis=0)
-    return meanlon, meanlat
+	if type(polygon) == str and polygon.startswith("POLYGON(("):
+	    p = polygon.strip(')POLYGON(').split(',')
+	    coords = np.array([[float(x) for x in ort.strip().split(' ')] for ort in p])
+	    meanlon, meanlat = coords.mean(axis=0)
+	elif type(polygon) == str and polygon.startswith("POINT("):
+		meanlon, meanlat = [float(x) for x in polygon[6:-1].split(" ")]
+	return [meanlon, meanlat]
 
 
 def bulk_action(df, INDEX_NAME, TYPE):
@@ -71,9 +73,7 @@ def bulk_action(df, INDEX_NAME, TYPE):
 		TYPE: elasticsearch document type (doc)
 	'''
 	for idx, row in df.iterrows():
-
-		# ToDo: use getpolygonmean to add polygon mean as column to speed up computation later on
-
+		row = clean_row(row)
 		yield {
 			'_op_type': 'index',
 			'_index': INDEX_NAME,
@@ -94,6 +94,7 @@ def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
 		TYPE: elasticsearch type for index
 		es: elasticsearch version
 	'''
+	data.seek(0)
 	meta.seek(0)
 	metadata = json.loads(meta.read().decode('utf-8').replace('\0', ''))
 	meta.seek(0)
@@ -117,6 +118,9 @@ def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
 		elif type(df[idx][0]) == str and df[idx][0].startswith("POLYGON(("):
 			# Elasticsearch can' handle polygon of form 'POLYGON ((0 0, 0 0, 0 0, 0 0, 0 0))' therefore chenged to POINT
 			df[idx] = df[idx].apply(lambda x: x.replace("POLYGON ((0 0, 0 0, 0 0, 0 0, 0 0))", "POINT (0 0)") if type(x) == str else x)
+			meanlong, meanlat = np.array([getpolygonmean(x) for x in df[idx]]).T
+			df['polygonmeanlon'] = meanlong
+			df['polygonmeanlat'] = meanlat
 
 	# Bulk upload files and check if successful
 	success, failed = 0, 0
@@ -232,7 +236,7 @@ def updateFile(datafile, metafile, filename, es):
 			      'from current directory, which is vis_ttt/code/app/')
 
 	# Index exists or was created, not set vriables for speed up
-	es.indices.put_settings(index='dlrmetadata', body={'index': {"refresh_interval" : '-1'}})
+	#es.indices.put_settings(index='dlrmetadata', body={'index': {"refresh_interval" : '-1'}})
 
 	# If file is updated, delete old data
 	if es.indices.exists('dlrmetadata'):
