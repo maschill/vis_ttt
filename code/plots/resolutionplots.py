@@ -36,8 +36,7 @@ print('Dataframe received')
 
 #Declare all variables here
 starttime = 'starttime1'
-parameters_of_interest = ['resolution2', 'percentageofpote1']
-
+#parameters_of_interest = ['resolution2', 'percentageofpote1', 'cloud_score_aver2']
 
 #Load polygons, define center point
 def get_polygons(row):
@@ -69,10 +68,9 @@ days = [str(x).replace(str(x),str(x)) for x in data.day]
 data['day'] = days
 data['dmy_str'] = data['month_year_str'] + "." + data['day']
 data['dmy_val'] = [float(str(x).replace('.', '')) for x in data.dmy_str]
-data['date'] = data['dmy_val']
-data['date'] = data['dmy_str'] = [date(int(data['year'][i]), int(data['month'][i]), int(data['day'][i])) for i,j in enumerate(data['dmy_str'])]
+data['date'] = data['dmy_str']
+data['date'] = [date(int(data['year'][i]), int(data['month'][i]), int(data['day'][i])) for i,j in enumerate(data['dmy_str'])]
 
-print(data['scene_lat'][0], data['scene_lon'][0])
 
 #==================
 # Set up worldmap data
@@ -114,46 +112,67 @@ for (index,country) in enumerate(worldmapdata):
 #create plot
 #==================
 
-# Set up data
-source = ColumnDataSource(data=dict(x=data['scene_lat'] , y=data['scene_lon'], c=data['resolution2'] ))
 
+# Set up data
+param_choice = data['resolution2']
+source = ColumnDataSource(data=dict(x=data['scene_lat'] , y=data['scene_lon'], c=param_choice ))
 plot.circle('x', 'y', color='c', source=source, line_width=3, alpha=0.6)
 
 # Set up widgets
 text = TextInput(title="title", value='Daily Resolution')
 print("You've made it this far, traveller!")
-date = DateSlider(title="Day", start=data['date'].min(), end=data['date'].max(), value=data['date'].max(), step=1)
-button_group = RadioButtonGroup(labels=["Resolution", "Potentail Water", "whatevah"], active=0)
 
-
+date_slider = Slider(title="Year", value=data['year'].min(), start=data['year'].min(), end=data['year'].max(), step=1)
+#date = DateSlider(title="Month", start=data['year'].min(), end=data['year'].max(), value=data['year'].min(), step=1)
+#date = DateSlider(title="Day", start=data['date'].min(), end=data['date'].max(), value=data['date'].min(), step=1)
+param_button_group = RadioButtonGroup(labels=["Resolution", "Potential Water", "Cloud Coverage"], active=0)
+time_button_group = RadioButtonGroup(labels=["Yearly", "Monthly", "Daily"], active=0)
 # Set up callbacks
+
+#Define global
+a = date_slider.value
+
 def update_title(attrname, old, new):
     plot.title.text = text.value
 
 text.on_change('value', update_title)
 
 def update_data(attrname, old, new):
-
     # Get the current slider values
-    a = date.value
-
+    global a
+    a = date_slider.value
     # Generate the new curve
-    view = data.loc[data['date'] == a]
+    view = data.loc[data['year'] == a] ##MUST CHANGE THIS FOR CHANGING DATE SLIDERS
     x = view['scene_lat']
     y = view['scene_lon']
-    print("Scene_lat: \n", data['scene_lat'][0].shape)
-    print("Scene_lon: \n", data['scene_lon'][0].shape)
-
     #c = view['percentageofpote1']
-    colors = ["#%02x%02x%02x" % (int(255/(r+1)), 100, 100) for r in data['resolution2']]
+    colors = ["#%02x%02x%02x" % (int(255/(r+1)), 100, 100) for r in param_choice]
     source.data = dict(x=x, y=y, c=colors)
 
-for w in [date]:
+for w in [date_slider]:
     w.on_change('value', update_data)
+
+def param_radio_handler(new):
+    global a
+    view = data.loc[data['year'] == a]
+    print 'Parameter button option ' + str(new) + ' selected.'
+    global param_choice
+    if str(new) == "0":
+        param_choice = data['resolution2']
+    if str(new) == "1":
+        param_choice = data['percentageofpote1']
+    if str(new) == "2":
+        param_choice = data['cloud_score_aver2']
+    colors = ["#%02x%02x%02x" % (int(255/(r+1)), 100, 100) for r in param_choice]
+    x = view['scene_lat']
+    y = view['scene_lon']
+    source.data = dict(x=x, y=y, c=colors)
+
+param_button_group.on_click(param_radio_handler)
 
 
 # Set up layouts and add to document
-inputs = widgetbox(text, date, button_group)
+inputs = widgetbox(text, date_slider, param_button_group, time_button_group)
 
 curdoc().add_root(column(inputs, plot,  ))
 curdoc().title = "Best UX ever"
