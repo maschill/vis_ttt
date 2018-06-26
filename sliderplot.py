@@ -100,18 +100,9 @@ while (scroll_size > 0):
 # data['scene_lat'] = (data['westboundingcoor0'] + data['eastboundingcoor0']) / 2
 # data['scene_lon'] = (data['northboundingcoo0'] + data['southboundingcoo0']) / 2
 
+gj = json.load(open('ne_110m_coastline.geojson'))   
 
-# Set up worldmap data
-# from: https://gist.github.com/tonyfast/994f37c4540ce91c6784
-countries = requests.get('https://rawgit.com/johan/world.geo.json/master/countries.geo.json').json()
 
-countryObject = {}
-for country in countries['features']:
-    countryObject[country['properties']['name']] = {
-        'x': [x[0] for x in country['geometry']['coordinates'][0]],
-        'y': [x[1] for x in country['geometry']['coordinates'][0]],
-    }
-worldmapdata = pd.DataFrame(countryObject)
 plot = figure(
     width = 800, 
     height=400, 
@@ -119,15 +110,11 @@ plot = figure(
     x_axis_label='Longitude',
     y_axis_label='Latitude',
 )
-#colors = cbrewer['Paired'][12]
-for (index,country) in enumerate(worldmapdata):
-    plot.patch(
-        x=worldmapdata[country]['x'],
-        y=worldmapdata[country]['y'],
-        #color=colors[index%len(colors)],
-        alpha = .6
-    )
 
+
+
+for i in  gj['features']:
+    plot.line([x[0] for x in i['geometry']['coordinates']], [x[1] for x in i['geometry']['coordinates']])
 
 # These are the parameters I wanted to take a look at
 # water_parameters = ['percentageofpote1', 'westboundingcoor0', 
@@ -135,7 +122,8 @@ for (index,country) in enumerate(worldmapdata):
 
 # Set up data
 # source = ColumnDataSource(data=dict(x=data['scene_lat'] , y=data['scene_lon'], c=data['percentageofpote1'] ))
-print(all_data.data)
+
+
 
 plot.circle(x='scene_lat', y='scene_lon', color='percentageofpote1', source=all_data, line_width=3, alpha=0.6)
 
