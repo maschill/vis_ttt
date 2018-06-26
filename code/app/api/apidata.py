@@ -25,7 +25,11 @@ def bokeh_serv():
 		all_data = pd.DataFrame(all_data)
 		for bla in all_data:
 			print('row: ', bla)
-	return JSONDecoder(all_data)
+	datatest = {
+    'x' : [1, 2, 3, 7, 8, 9],
+    'y' : [9, 3, 2, 5, 6, 7]
+	}
+	return json.dumps(datatest)
 
 
 @bp.route('/filter', methods=['GET', 'POST'])

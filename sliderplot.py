@@ -28,8 +28,10 @@ import pandas as pd
 
 #es = Elasticsearch('http://localhost:9200')
 print('GET DATA')
-all_data = AjaxDataSource(data_url='http://localhost:8000/api/_bokeh_data', polling_interval=10)
-print(all_data)
+all_data = RemoteSource(data_url='http://localhost:8000/api/_bokeh_data')
+df = all_data.to_df()
+print(df)
+
 '''q =  {
         "bool": {
             "must": [{
@@ -72,7 +74,7 @@ while (scroll_size > 0):
     # Update the scroll ID
     sid = resp['_scroll_id']
     # Get the number of results that we returned in the last scroll
-    scroll_size = len(resp['hits']['hits'])'''
+    scroll_size = len(resp['hits']['hits'])
 
 df = all_data.to_df()
 
@@ -165,3 +167,5 @@ curdoc().add_root(row(inputs, plot, ))
 curdoc().title = "Sliders"
 curdoc().plot_height=500
 curdoc().plot_width=1000
+
+'''

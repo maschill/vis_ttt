@@ -147,16 +147,7 @@ def updateFile(datafile, metafile, filename, es):
 
 	# Column description index creation or if already existsing deleted and created again
 	print('Start uploading column description')
-	if es.indices.exists('columndescription'):
-		es.indices.delete(index='columndescription', ignore=[400, 404])
-		try:
-			columnDescription = json.load(open('../../data/meta/_columnDescription.json'))
-			for entry in columnDescription:
-				es.index(index='columndescription', doc_type='doc', body=entry)
-		except (FileNotFoundError, FileExistsError):
-			print('_columnDescription must be located in data/meta to continue relocate file')
-			sys.exit(0)
-	else:
+	if not es.indices.exists('columndescription'):
 		try:
 			columnDescription = json.load(open('../../data/meta/_columnDescription.json'))
 			for entry in columnDescription:
