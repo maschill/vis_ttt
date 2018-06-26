@@ -56,6 +56,7 @@ def clean_row(row):
 
 
 def getpolygonmean(polygon):
+	meanlon, meanlat = None, None
 	if type(polygon) == str and polygon.startswith("POLYGON(("):
 	    p = polygon.strip(')POLYGON(').split(',')
 	    coords = np.array([[float(x) for x in ort.strip().split(' ')] for ort in p])
@@ -116,8 +117,8 @@ def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
 		if idx == 'isglobal0':
 			df.drop(columns='isglobal0', inplace=True)
 		elif type(df[idx][0]) == str and df[idx][0].startswith("POLYGON(("):
-			# Elasticsearch can' handle polygon of form 'POLYGON ((0 0, 0 0, 0 0, 0 0, 0 0))' therefore chenged to POINT
-			df[idx] = df[idx].apply(lambda x: x.replace("POLYGON ((0 0, 0 0, 0 0, 0 0, 0 0))", "POINT (0 0)") if type(x) == str else x)
+			# Elasticsearch can' handle polygon of form 'POLYGON((0 0, 0 0, 0 0, 0 0, 0 0))' therefore chenged to POINT
+			df[idx] = df[idx].apply(lambda x: x.replace("POLYGON((0 0, 0 0, 0 0, 0 0, 0 0))", "POINT(0 0)") if type(x) == str else x)
 			meanlong, meanlat = np.array([getpolygonmean(x) for x in df[idx]]).T
 			df['polygonmeanlon'] = meanlong
 			df['polygonmeanlat'] = meanlat

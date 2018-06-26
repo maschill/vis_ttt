@@ -50,35 +50,26 @@ def getpolygonmean(polygon):
     meanlon, meanlat = coords.mean(axis=0)
     return(meanlon, meanlat)
 
-# def tuplemin(tuple_list):
-#     paired_tuples = [None]*len(tuple_list)
-#     for i, tuple in enumerate(tuple_list):
-#         paired_tuples[i] = str(tuple[0]) + str(tuple[1])
-#     min_tuple = min(paired_tuples)
-#     min_tuple = int(min_tuple[:4]), int(min_tuple[4:])
-#     return min_tuple
-#
 
 # Change values to datetime for plotting issues
 data['polygon_center'] = [getpolygonmean(get_polygons(row)) for row in data.iterrows()]
 data['starttime1'] = pd.to_datetime(data[starttime])
+data['month_year'] = data.starttime1.dt.to_period('M')
 data['year'] = data.starttime1.dt.year
 data['month'] = data.starttime1.dt.month
-data['day'] = data.starttime1.dt.day
-
-print(data['day'][0], data['month'][0], data['year'][0])
 data['scene_lat'] = [x[0] for x in data['polygon_center']]
 data['scene_lon'] = [x[1] for x in data['polygon_center']]
-data['date'] = [date(int(data['year'][i]), int(data['month'][i]), int(data['day'][i])) for i,j in enumerate(data['year'])]
-
-data['yearmonth'] = data['month']
-# for i,j in enumerate(data['month']):
-#     if len(str(data['month'])) == 1:
-#         data['yearmonth'][i] = [str(data['year'][i]) + "0" + str(data['month'][i])]
-#     elif len(str(data['month'])) == 2:
-#         data['yearmonth'][i] = [str(data['year'][i]) + str(data['month'][i])]
-#     else:
-#         print("SOMETHIN'S FISHY AND I DON'T KNOW WHY-AY-BUT MY SKELETON IS SHAKIN' AND I'M GONNA DIE-AY-AYYYY")
+months_str = [str(float(str(x).replace('-', '.'))) for x in data.month_year]
+data['month_year_str'] = months_str
+months = [float(str(x).replace('-', '.')) for x in data.month_year]
+data['month_year_fl'] = months
+data['day'] = data.starttime1.dt.day
+days = [str(x).replace(str(x),str(x)) for x in data.day]
+data['day'] = days
+data['dmy_str'] = data['month_year_str'] + "." + data['day']
+data['dmy_val'] = [float(str(x).replace('.', '')) for x in data.dmy_str]
+# data['month_date'] = data['month'], data['year']
+data['date'] = [date(int(data['year'][i]), int(data['month'][i]), int(data['day'][i])) for i,j in enumerate(data['dmy_str'])]
 
 
 #==================
@@ -125,6 +116,7 @@ for (index,country) in enumerate(worldmapdata):
 #global:
 param_choice = data['resolution2']
 #
+
 source = ColumnDataSource(data=dict(x=data['scene_lat'] , y=data['scene_lon'], c=param_choice ))
 plot.circle('x', 'y', color='c', source=source, line_width=3, alpha=0.6)
 
@@ -132,8 +124,9 @@ plot.circle('x', 'y', color='c', source=source, line_width=3, alpha=0.6)
 text = TextInput(title="title", value='Daily Resolution')
 print("You've made it this far, traveller!")
 
+
 year_slider = Slider(title="Year", value=data['year'].min(), start=data['year'].min(), end=data['year'].max(), step=1)
-month_slider = Slider(title="Month", value=data['yearmonth'].min(), start=data['yearmonth'].min(), end=data['yearmonth'].max(), step=1)
+month_slider = Slider(title="Month", value=data['year'].min(), start=data['year'].min(), end=data['year'].max(), step=1)
 day_slider = DateSlider(title="Day", start=data['date'].min(), end=data['date'].max(), value=data['date'].min(), step=1)
 
 #date = DateSlider(title="Day", start=data['date'].min(), end=data['date'].max(), value=data['date'].min(), step=1)
@@ -142,8 +135,8 @@ time_button_group = RadioButtonGroup(labels=["Yearly", "Monthly", "Daily"], acti
 # Set up callbacks
 
 #global:
-chosen_slider = year_slider
-chosen_timeline = data['year']
+chosen_slider = month_slider
+chosen_timeline = data['month_year_fl']
 inputs = widgetbox(chosen_slider, param_button_group, time_button_group) #(text, )
 #
 
@@ -192,23 +185,19 @@ def time_radio_handler(new):
     global inputs
     global chosen_slider
     global chosen_timeline
+    view = data.loc[chosen_timeline == chosen_slider.value]
     print 'Time button option ' + str(new) + ' selected.'
     if str(new) == "0":
         chosen_slider = year_slider
-        chosen_timeline = data['year']
     if str(new) == "1":
         chosen_slider = month_slider
-        chosen_timeline = data['yearmonth']
     if str(new) == "2":
         chosen_slider = day_slider
-        chosen_timeline = data['date']
     colors = ["#%02x%02x%02x" % (int(255/(r+1)), 100, 100) for r in param_choice]
-    view = data.loc[chosen_timeline == chosen_slider.value]
     x = view['scene_lat']
     y = view['scene_lon']
     source.data = dict(x=x, y=y, c=colors)
     inputs = widgetbox(chosen_slider, param_button_group, time_button_group) #(text,
-    curdoc() #.add_root(column(inputs, plot,  ))
 time_button_group.on_click(time_radio_handler)
 #OK
 

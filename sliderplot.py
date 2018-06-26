@@ -28,10 +28,18 @@ import pandas as pd
 
 #es = Elasticsearch('http://localhost:9200')
 print('GET DATA')
+<<<<<<< HEAD
 all_data = RemoteSource(data_url='http://localhost:8000/api/_bokeh_data')
 df = all_data.to_df()
 print(df)
 
+=======
+all_data = AjaxDataSource(data_url='http://localhost:8000/api/_bokeh_data', method="POST", polling_interval=2000, if_modified=True, mode="replace")
+# all_data.data = {'starttime1':[], 'westboundingcoor0':[], 'eastboundingcoor0':[], 'northboundingcoo0':[], 'southboundingcoo0':[], 'percentageofpote1':[] }
+
+
+# print('data: ',all_data.data)
+>>>>>>> 9be49d58d256c833eedd942e36c4c14b27145c10
 '''q =  {
         "bool": {
             "must": [{
@@ -76,21 +84,21 @@ while (scroll_size > 0):
     # Get the number of results that we returned in the last scroll
     scroll_size = len(resp['hits']['hits'])
 
-df = all_data.to_df()
+# df = all_data.to_df()
 
-print(df)
-df['starttime1']=pd.to_datetime(df['starttime1'])
-print('something something ... dark side')
+# print(df)
+# df['starttime1']=pd.to_datetime(df['starttime1'])
+# print('something something ... dark side')
 
-print('Dataframe received')
-# Change values to datetime for plotting issues
-#data['starttime1'] = pd.to_datetime(data['starttime1'])
-data = df.copy()
-data['month_year'] = data.starttime1.dt.to_period('M')
-data['year'] = data.starttime1.dt.year
-data['month'] = data.starttime1.dt.month
-data['scene_lat'] = (data['westboundingcoor0'] + data['eastboundingcoor0']) / 2
-data['scene_lon'] = (data['northboundingcoo0'] + data['southboundingcoo0']) / 2
+# print('Dataframe received')
+# # Change values to datetime for plotting issues
+# #data['starttime1'] = pd.to_datetime(data['starttime1'])
+# data = df.copy()
+# data['month_year'] = data.starttime1.dt.to_period('M')
+# data['year'] = data.starttime1.dt.year
+# data['month'] = data.starttime1.dt.month
+# data['scene_lat'] = (data['westboundingcoor0'] + data['eastboundingcoor0']) / 2
+# data['scene_lon'] = (data['northboundingcoo0'] + data['southboundingcoo0']) / 2
 
 
 # Set up worldmap data
@@ -122,13 +130,14 @@ for (index,country) in enumerate(worldmapdata):
 
 
 # These are the parameters I wanted to take a look at
-water_parameters = ['percentageofpote1', 'westboundingcoor0', 
-                    'eastboundingcoor0', 'northboundingcoo0', 'southboundingcoo0']
+# water_parameters = ['percentageofpote1', 'westboundingcoor0', 
+#                     'eastboundingcoor0', 'northboundingcoo0', 'southboundingcoo0']
 
 # Set up data
-source = ColumnDataSource(data=dict(x=data['scene_lat'] , y=data['scene_lon'], c=data['percentageofpote1'] ))
+# source = ColumnDataSource(data=dict(x=data['scene_lat'] , y=data['scene_lon'], c=data['percentageofpote1'] ))
+print(all_data.data)
 
-plot.circle('x', 'y', color='c', source=source, line_width=3, alpha=0.6)
+plot.circle(x='scene_lat', y='scene_lon', color='percentageofpote1', source=all_data, line_width=3, alpha=0.6)
 
 
 # Set up widgets
@@ -147,14 +156,14 @@ def update_data(attrname, old, new):
     a = date.value
 
     # Generate the new curve
-    view = data.loc[data['year'] == a]
+    view = all_data.loc[all_data['year'] == a]
     print(len(view))
     x = view['scene_lat']
     y = view['scene_lon']
     #c = view['percentageofpote1']
     print(min(view['percentageofpote1']), max(view['percentageofpote1']))
-    colors = ["#%02x%02x%02x" % (int(255/(r+1)), 100, 100) for r in data['percentageofpote1']]
-    source.data = dict(x=x, y=y, c=colors)
+    colors = ["#%02x%02x%02x" % (int(255/(r+1)), 100, 100) for r in all_data['percentageofpote1']]
+    all_data.data = dict(x=x, y=y, c=colors)
 
 for w in [date]:
     w.on_change('value', update_data)
@@ -165,7 +174,12 @@ inputs = widgetbox(text, date)
 
 curdoc().add_root(row(inputs, plot, ))
 curdoc().title = "Sliders"
+<<<<<<< HEAD
 curdoc().plot_height=500
 curdoc().plot_width=1000
 
 '''
+=======
+curdoc().plot_height=400
+curdoc().plot_width=800
+>>>>>>> 9be49d58d256c833eedd942e36c4c14b27145c10

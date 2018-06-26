@@ -9,6 +9,10 @@ from bokeh.plotting import figure
 from bokeh.embed import components
 from bokeh.embed import server_document
 
+
+
+from flask_cors import CORS
+
 col1 = [''.join(['val', str(x)]) for x in range(10)]
 col2 = [x for x in range(10)]
 col3 = ['red', 'green', 'blue', 'green', 'red', 'blue', 'red', 'yellow', 'red', 'green']
@@ -19,6 +23,9 @@ app = Flask(__name__)
 
 from api import bp as api_bp
 app.register_blueprint(api_bp, url_prefix='/api')
+
+cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+
 
 sys.path.insert(0,'../')
 import  elasticSearch
