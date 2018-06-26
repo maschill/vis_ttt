@@ -101,11 +101,23 @@ def filter_data():
 	print('QUERY', q)
 
 	resp = es.search(index='dlrmetadata', doc_type='doc', body={"query":q}, size=500)
+	all_data = [d['_source'] for d in resp['hits']['hits']]
+	all_data = pd.DataFrame(all_data)
+	df = all_data
+	df['starttime1']=pd.to_datetime(df['starttime1'])
+	data = df
+	data['month_year'] = data.starttime1.dt.to_period('M')
+	data['year'] = data.starttime1.dt.year
+	data['month'] = data.starttime1.dt.month
+	data['scene_lat'] = (data['westboundingcoor0'] + data['eastboundingcoor0']) / 2
+	data['scene_lon'] = (data['northboundingcoo0'] + data['southboundingcoo0']) / 2
+	
+	data.to_json("data.json")
 
-	with open('data.json', 'w') as file:
-		json.dump(resp, file)
+	# with open('data.json', 'w') as file:
+	# 	json.dump(data, file)
 	#print('QUERY RESPONSE: ', resp)
-	return jsonify(resp)
+	return jsonify(data[['scene_lat', 'scene_lon', 'year',request.args.get('measure_variable')	]].to_dict(orient='index'))
 
 @bp.route('/all', methods=['GET'])
 def get_all():

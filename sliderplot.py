@@ -28,18 +28,11 @@ import pandas as pd
 
 #es = Elasticsearch('http://localhost:9200')
 print('GET DATA')
-<<<<<<< HEAD
-all_data = RemoteSource(data_url='http://localhost:8000/api/_bokeh_data')
-df = all_data.to_df()
-print(df)
-
-=======
 all_data = AjaxDataSource(data_url='http://localhost:8000/api/_bokeh_data', method="POST", polling_interval=2000, if_modified=True, mode="replace")
 # all_data.data = {'starttime1':[], 'westboundingcoor0':[], 'eastboundingcoor0':[], 'northboundingcoo0':[], 'southboundingcoo0':[], 'percentageofpote1':[] }
 
 
 # print('data: ',all_data.data)
->>>>>>> 9be49d58d256c833eedd942e36c4c14b27145c10
 '''q =  {
         "bool": {
             "must": [{
@@ -83,7 +76,7 @@ while (scroll_size > 0):
     sid = resp['_scroll_id']
     # Get the number of results that we returned in the last scroll
     scroll_size = len(resp['hits']['hits'])
-
+'''
 # df = all_data.to_df()
 
 # print(df)
@@ -162,12 +155,5 @@ inputs = widgetbox(text, date)
 
 curdoc().add_root(row(inputs, plot, ))
 curdoc().title = "Sliders"
-<<<<<<< HEAD
-curdoc().plot_height=500
-curdoc().plot_width=1000
-
-'''
-=======
 curdoc().plot_height=400
 curdoc().plot_width=800
->>>>>>> 9be49d58d256c833eedd942e36c4c14b27145c10

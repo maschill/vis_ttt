@@ -14,6 +14,7 @@ from bokeh.embed import server_document
 from flask_cors import CORS
 
 df = pd.read_json("data_default.json")
+df.to_json('data.json')
 es = Elasticsearch([{'host':'localhost','port': 9200}], timeout=1000)
 app = Flask(__name__)
 
@@ -78,19 +79,13 @@ def download_csv():
 
 @app.route('/')
 def index():
-	script = server_document("http://localhost:5006/sliderplot")
-	
 	d3data = get_measured_variables()
 	docnum = es.count(index='dlrmetadata', filter_path=['count'])['count']
 
-	return render_template('home.html', script=script, d3data=d3data, docnum=docnum)
+	return render_template('home.html',  d3data=d3data, docnum=docnum)
 
 @app.route('/data_servant', methods=['POST', 'GET'])
 def data_servant():
-	# if request.method=='POST':
-	# 	f1 = request.args.get('f1')
-	# 	f1 = request.args.get('f2')
-	# 	f1 = request.args.get('f3')
 	json_req = request.get_json()
 	level = json_req["colors"]
 	min_col2 = json_req["slider_min"]
@@ -98,6 +93,10 @@ def data_servant():
 	df_res = df[(df.col3 == level) & (df.col2 >= int(min_col2))]
 	return jsonify(status='sucess' , content='this is the new Content', **df_res.to_dict() )
 
+@app.route("/bokeh", methods=['POST', 'GET'])
+def bokeh_plots():
+	script = server_document("http://localhost:5006/sliderplot")
+	return render_template("bokeh.html", script=script)
 
 #this is called when clicking the upload button
 @app.route('/_upload_button', methods=['GET', 'POST'])

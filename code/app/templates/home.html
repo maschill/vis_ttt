@@ -3,11 +3,10 @@
 {% block body %}
 <h1>Home - Analytics - Visualization</h1>
 <h1>Also: Best UX by far!</h1>
-<p>Home - Analytics - Visualization</p>
 
 <button type="button" class="btn border border-dark btn-default float-sm-right" id="data_request_btn">Request Data</button>
 
-<p id="dyn_block"> Start Content</p>
+<h3 class="float-sm-left"> Status:  </h3> <h3 class="float-sm-left px-5"> <div  id="dyn_block">waiting for request</div></h3>
 <br>
 <br><br><br>
 <label for="mission0">Mission Name:</label>
@@ -32,7 +31,37 @@
 <div id="chart" style="overflow:scroll; height:300px;"></div>
 </div>
 
-{{ script | safe }}
+<div class="py-5 col-md-12 float-sm-right">
+	<div class="col-md-6 col-sm-12">
+		<button type="button" class="btn border border-dark btn-default float-sm-right px-4" id="data_show_toggle">Show Data</button>
+		<a class="float-sm-right px-4" href="/csv/"><button type="button" class="btn border border-dark btn-default" id="data_download">Download Data</button></a>
+	</div>
+</div>
+
+
+
+<table id="testTable" visi class="table table-striped">
+		<thead>
+			<tr class="thead-dark">
+				<th>Mission</th>
+				<th>Starttime</th>
+				<th>Stoptime</th>
+				<th>Coordinates</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+			</tr>
+		</tbody>
+	</table>
+	
+	<br>
+	<br>
+	<br>
 
 <script>
     var data = {{ d3data | safe }}
@@ -193,37 +222,14 @@
 			.style("font-size","15px");
 </script>
 
-<button type="button" class="btn border border-dark btn-default float-sm-right m-5 px-5" id="data_show_toggle">Show Data</button>
-<a href="/csv/"><button type="button" class="btn border border-dark btn-default float-sm-right m-5 px-5" id="data_download">Download Data</button></a>
 
-<table id="testTable" visi class="table table-striped">
-    <thead>
-        <tr class="thead-dark">
-            <th>Mission</th>
-            <th>Starttime</th>
-            <th>Stoptime</th>
-            <th>Coordinates</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-        </tr>
-    </tbody>
-</table>
-
-<br>
-<br>
-<br>
 <script type="text/javascript">
      $(function() {    
 		$( "#testTable" ).hide();
 		$( "#data_show_toggle" ).click(function() {
    			 $( "#testTable" ).toggle();
 		});
+
 		
         $("#data_request_btn").click(function(){
             $("#dyn_block").html("Working");
@@ -242,7 +248,7 @@
                 cache: false,
                 success: function (data) {
                     console.log('sucessful answer received!');
-                    $("#dyn_block").html(data.content);
+                    $("#dyn_block").html("Data delivered.");
                     $("#testTable tbody").empty();
                     $.each(data.hits.hits, function(i,item){
                         $("#testTable tbody").append(
@@ -261,5 +267,4 @@
 
 
 </script>
-
 {% endblock %}
