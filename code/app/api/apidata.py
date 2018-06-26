@@ -6,10 +6,15 @@ import datetime, json
 from collections import defaultdict
 import pandas as pd
 
+from flask_cors import CORS
+from flask_cors import cross_origin
+
 from bokeh.client import pull_session
 from bokeh.embed import server_session
 
 es = Elasticsearch('http://localhost:9200')
+
+
 
 @bp.route('/st/<starttime>', methods=['GET'])
 def get_starttime(starttime):
@@ -17,16 +22,24 @@ def get_starttime(starttime):
 		            datetime.datetime.strptime(starttime, '%Y-%m-%d %H:%M:%S.%f')}}})
 	return jsonify(resp)
 
-@bp.route("/_bokeh_data", methods=["GET", "POST"])
+@bp.route("/_bokeh_data", methods=["GET", "POST", "OPTIONS"])
+@cross_origin(allow_headers=['Content-Type'])
 def bokeh_serv():
 	with open('data.json', 'r') as infile:
 		data = json.load(infile)
-		all_data = [d['_source'] for d in data['hits']['hits'][:20]]
+		all_data = [d['_source'] for d in data['hits']['hits']]
 		all_data = pd.DataFrame(all_data)
-		for bla in all_data:
-			print('row: ', bla)
-	return JSONDecoder(all_data)
+		df = all_data
+		df['starttime1']=pd.to_datetime(df['starttime1'])
 
+		data = df
+		data['month_year'] = data.starttime1.dt.to_period('M')
+		data['year'] = data.starttime1.dt.year
+		data['month'] = data.starttime1.dt.month
+		data['scene_lat'] = (data['westboundingcoor0'] + data['eastboundingcoor0']) / 2
+		data['scene_lon'] = (data['northboundingcoo0'] + data['southboundingcoo0']) / 2
+
+		return jsonify(data[['scene_lat', 'scene_lon', 'percentageofpote1', 'year']].to_dict(orient="list"))
 
 @bp.route('/filter', methods=['GET', 'POST'])
 def filter_data():
