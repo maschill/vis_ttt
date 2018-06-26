@@ -27,7 +27,6 @@
 <br><br>
 
 <div>
-<div id="d3_xaxis">dingidngidng</div>
 <div id="chart" style="overflow:scroll; height:300px;"></div>
 </div>
 
@@ -39,14 +38,18 @@
 </div>
 
 
+<div class="pb-1"></div><div class="col-sm-1 float-sm-left pb-2"> Slider:</div> <div class="px-3 col-sm-1 float-sm-left pb-2" id="slider_val">50</div>
 
-<table id="testTable" visi class="table table-striped">
+<div id="slider-range" class="col-md-4 float-sm-right px-3"></div>
+
+<table id="testTable"  class="table table-striped pb-5">
 		<thead>
 			<tr class="thead-dark">
 				<th>Mission</th>
-				<th>Starttime</th>
-				<th>Stoptime</th>
-				<th>Coordinates</th>
+				<th>Year</th>
+				<th>Lat</th>
+				<th>Lon</th>
+				<th id="valcol">percentageofpote1</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -58,10 +61,6 @@
 			</tr>
 		</tbody>
 	</table>
-	
-	<br>
-	<br>
-	<br>
 
 <script>
     var data = {{ d3data | safe }}
@@ -224,7 +223,42 @@
 
 
 <script type="text/javascript">
-     $(function() {    
+     $(function() { 
+		$.ajax({
+                type:'GET',
+                url:"/api/filter?mission0=" + $("#mission0").val() 
+                            +   "&starttimeMin=" + $("#starttimeMin").val()
+                            +   "&starttimeMax=" + $("#starttimeMax").val()
+                            +   "&latitude_longitude=" + $("#latitude_longitude").val()
+                            +   "&measure_variable=" + $("#measure_variable").val(),
+                data:{},
+                contentType: 'application/json;charset=UTF-8',
+                cache: false,
+                success: function (data) {
+                    console.log('sucessful answer received!');
+                    $("#testTable tbody").empty();
+                    $.each(data, function(i,item){
+                        $("#testTable tbody").append(
+                            "<tr>"
+								+ "<td>" + item.mission0 + "</td>"
+								+ "<td>" + item.year + "</td>"
+                                + "<td>" + item.scene_lat + "</td>"
+                                + "<td>" + item.scene_lon + "</td>"
+								+ "<td>" + item.val + "</td>"
+                            + "</tr>"
+                        );
+                    });
+                },
+            });
+
+        $( "#slider-range" ).slider({
+			min: 0,
+            max: 1000,
+            slide: function( event, ui){
+				$("#slider_val").html(ui.value);
+
+			}
+		});
 		$( "#testTable" ).hide();
 		$( "#data_show_toggle" ).click(function() {
    			 $( "#testTable" ).toggle();
@@ -249,13 +283,16 @@
                 success: function (data) {
                     console.log('sucessful answer received!');
                     $("#dyn_block").html("Data delivered.");
+					$("#valcol").html($("#measure_variable").val());
                     $("#testTable tbody").empty();
-                    $.each(data.hits.hits, function(i,item){
+                    $.each(data, function(i,item){
                         $("#testTable tbody").append(
                             "<tr>"
-                                + "<td>" + data.hits.hits[i]._source.mission0 + "</td>"
-                                + "<td>" + data.hits.hits[i]._source.starttime1 + "</td>"
-                                + "<td>" + data.hits.hits[i]._source.coordinates + "</td>"
+								+ "<td>" + item.mission0 + "</td>"
+								+ "<td>" + item.year + "</td>"
+                                + "<td>" + item.scene_lat + "</td>"
+                                + "<td>" + item.scene_lon + "</td>"
+								+ "<td>" + item.val + "</td>"
                             + "</tr>"
                         );
                     });
@@ -267,4 +304,5 @@
 
 
 </script>
+
 {% endblock %}

@@ -37,7 +37,7 @@ def bokeh_serv():
 		data['month'] = data.starttime1.dt.month
 		data['scene_lat'] = (data['westboundingcoor0'] + data['eastboundingcoor0']) / 2
 		data['scene_lon'] = (data['northboundingcoo0'] + data['southboundingcoo0']) / 2
-		return jsonify(data[['scene_lat', 'scene_lon', 'percentageofpote1', 'year']].to_dict(orient="list"))
+		return jsonify(data[['scene_lat', 'scene_lon', 'percentageofpote1', 'year', "mission0"]].to_dict(orient="list"))
 
 @bp.route('/filter', methods=['GET', 'POST'])
 def filter_data():
@@ -109,15 +109,15 @@ def filter_data():
 	data['month_year'] = data.starttime1.dt.to_period('M')
 	data['year'] = data.starttime1.dt.year
 	data['month'] = data.starttime1.dt.month
-	data['scene_lat'] = (data['westboundingcoor0'] + data['eastboundingcoor0']) / 2
-	data['scene_lon'] = (data['northboundingcoo0'] + data['southboundingcoo0']) / 2
-	
+	data['scene_lat'] = data['polygonmeanlat']
+	data['scene_lon'] = data['polygonmeanlon']
+	data['val'] = data[request.args.get("measure_variable")]
 	data.to_json("data.json")
 
 	# with open('data.json', 'w') as file:
 	# 	json.dump(data, file)
 	#print('QUERY RESPONSE: ', resp)
-	return jsonify(data[['scene_lat', 'scene_lon', 'year',request.args.get('measure_variable')	]].to_dict(orient='index'))
+	return jsonify(data[['scene_lat', 'scene_lon', 'year', "val", "mission0"	]].to_dict(orient='index'))
 
 @bp.route('/all', methods=['GET'])
 def get_all():
