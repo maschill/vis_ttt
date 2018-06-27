@@ -39,7 +39,7 @@
 </div>
 
 <div class="col-md-12 bg-light border border-dark p-5">
-	<div class="m-5 py-5" id="map" style="min-width:320px;width :50%;height : 600px"></div>
+	<div class="m-5 py-5" id="map" style="min-width:800px;width :80%;height : 400px"></div>
 
 	<!-- <div class="py-5 m-5 col-md-12 float-sm-right"> -->
 		<div class="col-md-6 col-sm-12 float-sm-right">
@@ -297,6 +297,7 @@ function ajaxCallBack(data){
 	placesByYear = d3.nest()
 	.key(function(d){ return d.year;})
 	.entries(places);
+	//updatescatter(data.minmax.miny)
 }
 
 function grp(data){
@@ -306,12 +307,24 @@ function grp(data){
 	console.log(placesByYear);
 }
 
-function d3worldmap(data){
-	
-	ajaxCallBack(data);
+var tip = d3.tip()
+		.attr('class', 'd3-tip')
+		.offset([250, 0])
+		.style("left", "300px")
+		.style("top", "400px")
+		.html(function(d) {
+			return d.val;
+		})
 
-	var width = 1800,
-		height = 600;
+	svg.call(tip);
+
+
+function d3worldmap(data){
+
+	ajaxCallBack(data.data);
+
+	var width = 2800,
+		height = 1200;
 	var color= d3.scale.ordinal()
 		.domain([1,2,3,4,5,6,7,8,9])
 		.range(colorbrewer.Oranges[9]);
@@ -321,7 +334,7 @@ function d3worldmap(data){
 		.translate([-500,600]);*/
 
 
-	var projection = d3.geo.mercator().scale(100).translate([width/4,height/2]);
+	var projection = d3.geo.mercator().scale(100).translate([width/4,height/4]);
 	var path = d3.geo.path()
 		.projection(projection);
 
@@ -404,19 +417,9 @@ function d3worldmap(data){
 			//.on('mouseover', tip.show)
 				//.on('mouseout', tip.hide)
 
+	updatescatter(places);
 
-		var tip = d3.tip()
-				.attr('class', 'd3-tip')
-				.offset([250, 0])
-				.style("left", "300px")
-				.style("top", "400px")
-				.html(function(d) {
-					return d.val;
-				})
-
-			svg.call(tip);
-
-
+/*
 	svg.selectAll(".pin")
 		.data(places)
 		.enter().append("circle", ".pin")
@@ -430,7 +433,7 @@ function d3worldmap(data){
 		.style('fill', function(d){return colorScale(colorInterpolate(d.val))})
 		.on('mouseover', tip.show)
 		.on('click', tip.hide);
-
+*/
 		//var projection = d3.geo.mercator().scale(900).translate([-600,700]);
 	var path= d3.geo.path().projection(projection);
 
@@ -440,6 +443,25 @@ function d3worldmap(data){
 		.attr("fill","darkblue");
 
 	});
+
+function updatescatter(places) {
+	svg.selectAll(".pin")
+	.data(places)
+	//placesByYear.find(d => d.key == "clicked").values
+	.enter()
+	.append("circle", ".pin")
+	.attr("r", 5)
+	.attr("transform", function(d) {
+		return "translate(" + projection([
+					d.scene_lon,
+					d.scene_lat
+					]) + ")";
+					})
+	.style('fill', function(d){return colorScale(colorInterpolate(d.val))})
+	.on('mouseover', tip.show)
+	.on('mouseout', tip.hide);
+};
+
 }
 
 $(function() {
@@ -478,6 +500,7 @@ $( "#slider-range" ).slider({
 	max: 1000,
 	slide: function( event, ui){
 		$("#slider_val").html(ui.value);
+		updatescatter();//ui.value);
 
 	}
 });
@@ -524,7 +547,7 @@ $("#data_request_btn").click(function(){
 			$( "#slider-range" ).slider( "option", "min", data.minmax.miny );			
 			$( "#slider-range" ).slider( "option", "value", data.minmax.miny );
 			$( "#slider-range" ).slider( "option", "max", data.minmax.maxy );
-			d3worldmap(data.data);
+			d3worldmap(data);
 		},
 		error: function() {
 			$("#dyn_block").html("Error. Pleas Try again!");
