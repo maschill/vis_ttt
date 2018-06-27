@@ -41,7 +41,8 @@ var dataset = [
             {"date":2013, "value": 2},
             {"date":2014, "value": 33},   
             {"date":2015, "value": 13},
-            {"date":2016, "value": 23}];
+            {"date":2016, "value": 23},
+            {"date":2018, "value": 23}];
 
 var xScale = d3.time.scale()
     .domain([d3.min(dataset, function(d){ return d.date; }), d3.max(dataset, function(d){ return d.date; })]).nice()

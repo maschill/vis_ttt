@@ -31,10 +31,10 @@
 </div>
 
 
-<div class="border border-dark p-5 col-md-12 bg-light">
+<div class="border border-dark p-5 my-5 col-md-12 bg-light">
 	<h3 class="text-center">Measured Variables</h3>
 	<div id="chart" style="overflow-y:scroll; overflow-x:hidden; height:300px;"></div>
-	<div id="chart2" style="overflow:hidden; height:200px;"></div>
+	<div id="chart2" style="overflow:hidden;"></div>
 
 </div>
 
@@ -87,9 +87,9 @@
     var docnum = {{ docnum | safe }}
     var gap = 10
 
-        var margin = {top: 60, right: 20, bottom: 80, left: 200},
+        var margin = {top: 07, right: 20, bottom: 00, left: 150},
 			width = 960 - margin.left - margin.right,
-			height = 1500 - margin.top - margin.bottom;
+			height = 1305 - margin.top - margin.bottom;
 
 		var formatPercent = d3.format(".0%");
 
@@ -178,8 +178,8 @@
 				  .attr("class", "bar")
 				  .attr("y", function(d) { return y(d.fname); })
 				  .attr("height", y.rangeBand())
-				  .attr("width", function(d) { return (xL(0) - xL(100 * d.count / docnum)); })
-				  .attr("x", function(d) { return (width/2-gap/2)-(xL(0) - xL(100 * d.count/docnum));})
+				  .attr("width", function(d) { return (xL(0) - xL(98 * d.count / docnum)); })
+				  .attr("x", function(d) { return (width/2-gap/2)-(xL(0) - xL(98 * d.count/docnum));})
 				  //function(d) { return x(d.std_deviation / d.avg); })
 				  .on('mouseover', tipL.show)
 				  .on('mouseout', tipL.hide)
@@ -199,9 +199,9 @@
     var docnum = {{ docnum | safe }}
     var gap = 10
 
-        var margin = {top: 60, right: 20, bottom: 80, left: 200},
+        var margin = {top: 05, right: 20, bottom: 45, left: 150},
 			width = 960 - margin.left - margin.right,
-			height = 100 - margin.top - margin.bottom;
+			height = 70 - margin.top - margin.bottom;
 
 		var formatPercent = d3.format(".0%");
 
@@ -209,7 +209,7 @@
 		    .range([width/2+gap/2, width]);
 
 		var xL = d3.scale.linear()
-		    .range([0,width/2-gap/2]);
+		    .range([width/2-gap/2, 0]);
 
 		var xRAxis = d3.svg.axis()
 			.scale(xR)
@@ -223,7 +223,8 @@
 			.ticks(3)
 			.orient("top")
 			.tickSize(3)
-			.tickFormat(function(d) { return Math.round(Math.log(d)); });
+			.tickPadding(-20)
+			.tickFormat(function(d) { return Math.round(d); });
 
 		var svg = d3.select("#chart2").append("svg")
 			.attr("width", width + margin.left + margin.right)
@@ -249,7 +250,7 @@
 			.attr("text-anchor", "middle")
 			.attr("x", (width/2-gap)/2)
 			.attr("y", height+40)
-			.text("Relative requency of variable");
+			.text("Relative frequency of variable");
 
 		svg.append("g")
 		  .attr("class", "x axis")
@@ -465,36 +466,6 @@ function updatescatter(places) {
 }
 
 $(function() {
-// $.ajax({
-// 		type:'GET',
-// 		url:"/api/filter?mission0=" + $("#mission0").val()
-// 					+   "&starttimeMin=" + $("#starttimeMin").val()
-// 					+   "&starttimeMax=" + $("#starttimeMax").val()
-// 					+   "&latitude_longitude=" + $("#latitude_longitude").val()
-// 					+   "&measure_variable=" + $("#measure_variable").val(),
-// 		data:{},
-// 		contentType: 'application/json;charset=UTF-8',
-// 		cache: false,
-// 		success: function (data) {
-// 			//ajaxCallBack(data);
-// 			console.log('sucessful answer received!');
-// 			$("#testTable tbody").empty();
-// 			$( "#slider-range" ).slider( "option", "min", data.miny );
-// 			$( "#slider-range" ).slider( "option", "max", data.maxy );
-// 			$.each(data, function(i,item){
-// 				$("#testTable tbody").append(
-// 					"<tr>"
-// 						+ "<td>" + item.mission0 + "</td>"
-// 						+ "<td>" + item.year + "</td>"
-// 						+ "<td>" + item.scene_lat + "</td>"
-// 						+ "<td>" + item.scene_lon + "</td>"
-// 						+ "<td>" + item.val + "</td>"
-// 					+ "</tr>"
-// 				);
-// 			});
-// 		},
-// 	});
-
 $( "#slider-range" ).slider({
 	min: 0,
 	max: 1000,
@@ -508,7 +479,6 @@ $( "#testTable" ).hide();
 $( "#data_show_toggle" ).click(function() {
 	 $( "#testTable" ).toggle();
 });
-
 
 $("#data_request_btn").click(function(){
 	$("#dyn_block").html("Working");
@@ -548,6 +518,8 @@ $("#data_request_btn").click(function(){
 			$( "#slider-range" ).slider( "option", "value", data.minmax.miny );
 			$( "#slider-range" ).slider( "option", "max", data.minmax.maxy );
 			d3worldmap(data);
+			//ajaxCallBack(data.data);
+			//update_plot(data.minmax.miny);
 		},
 		error: function() {
 			$("#dyn_block").html("Error. Pleas Try again!");
