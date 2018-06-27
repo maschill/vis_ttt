@@ -39,7 +39,7 @@
 </div>
 
 <div class="col-md-12 bg-light border border-dark p-5">
-	<div class="m-5 py-5" id="map" style="min-width:800px;width :80%;height : 400px"></div>
+	<div class="m-5 py-5" id="map" style="min-width:400px;width :50%;height : 400px"></div>
 
 	<!-- <div class="py-5 m-5 col-md-12 float-sm-right"> -->
 		<div class="col-md-6 col-sm-12 float-sm-right">
@@ -294,7 +294,7 @@ var placesByYear = null;
 var places = null;
 
 function ajaxCallBack(data){
-	places = Object.values(data);
+	places = Object.values(data.data);
 	placesByYear = d3.nest()
 	.key(function(d){ return d.year;})
 	.entries(places);
@@ -319,30 +319,15 @@ var tip = d3.tip()
 
 	svg.call(tip);
 
-
-function d3worldmap(data){
-
-	ajaxCallBack(data.data);
-
 	var width = 2800,
 		height = 1200;
 	var color= d3.scale.ordinal()
 		.domain([1,2,3,4,5,6,7,8,9])
 		.range(colorbrewer.Oranges[9]);
 
-	/*var projection = d3.geo.mercator()
-		.scale(800)
-		.translate([-500,600]);*/
-
-
-	var projection = d3.geo.mercator().scale(100).translate([width/4,height/4]);
+	var projection = d3.geo.mercator().scale(50).translate([width/4,height/4]);
 	var path = d3.geo.path()
 		.projection(projection);
-
-	var svg = d3.select("#map").append("svg")
-		.attr("viewBox", "0 0 800 600")
-		.attr("preserveAspectRatio", "xMidYMid meet");
-	var data;
 
 	// Define color map
 	var mycolors = ["red", "black", "green", "blue"]
@@ -370,6 +355,17 @@ function d3worldmap(data){
 			.attr("offset",  function(d,i) {return i/(mycolors.length-1);})
 			.attr("stop-color", function(d){return d;})
 
+
+function d3worldmap(data){
+
+	ajaxCallBack(data);
+	console.log(places)
+	var svg = d3.select("#map").append("svg")
+		.attr("viewBox", "0 0 800 600")
+		.attr("preserveAspectRatio", "xMidYMid meet");
+	var data;
+
+
 	//append legendS
 	var legend = svg.append("g")
 		.attr("class", "legendWrapper")
@@ -393,17 +389,17 @@ function d3worldmap(data){
 		.scale(yScale)
 		.orient("right")
 
+	svg.append("g")
+		.attr("class", "axis")
+		.attr("transform","translate("+ 0 +","+ 0 +")")
+		.call(yAxis);
+
 	places.forEach(function(i,d){
 		colorInterpolate.domain([d3.min(places, function(d) { return d.val; }),
 			d3.max(places, function(d) { return d.val; })]);
 		yScale.domain([d3.min(places, function(d) { return d.val; }),
 			d3.max(places, function(d) { return d.val; })]);
 	});
-
-	svg.append("g")
-		.attr("class", "axis")
-		.attr("transform","translate("+ 0 +","+ 0 +")")
-		.call(yAxis);
 
 	d3.json("https://s3-us-west-2.amazonaws.com/vida-public/geo/world-topo-min.json", function(error, swiss) {
 	if (error) throw error;
@@ -418,12 +414,9 @@ function d3worldmap(data){
 			//.on('mouseover', tip.show)
 				//.on('mouseout', tip.hide)
 
-	updatescatter(places);
-
-/*
 	svg.selectAll(".pin")
-		.data(places)
-		.enter().append("circle", ".pin")
+		.data(places).enter()
+		.append("circle", ".pin")
 		.attr("r", 5)
 		.attr("transform", function(d) {
 			return "translate(" + projection([
@@ -433,9 +426,9 @@ function d3worldmap(data){
 						})
 		.style('fill', function(d){return colorScale(colorInterpolate(d.val))})
 		.on('mouseover', tip.show)
-		.on('click', tip.hide);
-*/
-		//var projection = d3.geo.mercator().scale(900).translate([-600,700]);
+		.on('mouseout', tip.hide)
+
+	//var projection = d3.geo.mercator().scale(900).translate([-600,700]);
 	var path= d3.geo.path().projection(projection);
 
 	var areas= group.append("path")
@@ -444,12 +437,14 @@ function d3worldmap(data){
 		.attr("fill","darkblue");
 
 	});
+}
 
-function updatescatter(places) {
+function updatescatter(year) {
+	var ply = Object.values(placesByYear.find(d => d.key == year))
+	//console.log(ply)
+	console.log(ply)
 	svg.selectAll(".pin")
-	.data(places)
-	//placesByYear.find(d => d.key == "clicked").values
-	.enter()
+	.data(ply).enter()
 	.append("circle", ".pin")
 	.attr("r", 5)
 	.attr("transform", function(d) {
@@ -460,10 +455,10 @@ function updatescatter(places) {
 					})
 	.style('fill', function(d){return colorScale(colorInterpolate(d.val))})
 	.on('mouseover', tip.show)
-	.on('mouseout', tip.hide);
+	.on('mouseout', tip.hide)
+	console.log('jaa', function(d) {console.log("event = ", d)});
 };
 
-}
 
 $(function() {
 $( "#slider-range" ).slider({
@@ -471,7 +466,7 @@ $( "#slider-range" ).slider({
 	max: 1000,
 	slide: function( event, ui){
 		$("#slider_val").html(ui.value);
-		updatescatter();//ui.value);
+		updatescatter(ui.value);
 
 	}
 });
