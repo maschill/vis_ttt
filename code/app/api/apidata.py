@@ -165,18 +165,17 @@ def filter_data():
 		data = data[data["val"] != 0]
 		data.dropna(axis=0)
 		data['year'] = pd.to_numeric(data.starttime1.dt.year)
-		tdict = {}
+		mm = {}
 		data.to_json("data.json")
 		data.index = data.index.map(str)
 		tdict = data[['scene_lat', 'scene_lon', 'year', "val", "mission0"]].to_dict(orient='index')
 
-		tdict["miny"] = int(data['year'].min())
-		tdict["maxy"] = int(data['year'].max())
+		mm["miny"] = int(data['year'].min())
+		mm["maxy"] = int(data['year'].max())
 		# with open('data.json', 'w') as file:
 		# 	json.dump(data, file)
 		#print('QUERY RESPONSE: ', resp)
-		print(tdict)
-		return jsonify(tdict)
+		return jsonify(data=tdict, minmax=mm)
 	except Exception as e:
 		print(e)
 		return jsonify({ "error": "500 - internal server error" })
