@@ -13,7 +13,6 @@
         <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
         <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/ui-lightness/jquery-ui.css" type="text/css" media="all" />
 
-
         <script src="http://d3js.org/d3.v3.min.js"></script>
         <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
             <!-- Bokeh includes-->
@@ -23,6 +22,19 @@
         <script type="text/javascript" src="http://cdn.pydata.org/bokeh/release/bokeh-0.12.16.min.js"></script>
         <script src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.16.min.js"></script>
         <script src="https://cdn.pydata.org/bokeh/release/bokeh-tables-0.12.16.min.js"></script>
+
+<!-- for world map -->
+<script src="http://colorbrewer2.org/export/colorbrewer.js"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script src="https://d3js.org/d3-array.v1.min.js"></script>
+<script src="https://d3js.org/d3-collection.v1.min.js"></script>
+<script src="https://d3js.org/d3-color.v1.min.js"></script>
+<script src="https://d3js.org/d3-format.v1.min.js"></script>
+<script src="https://d3js.org/d3-interpolate.v1.min.js"></script>
+<script src="https://d3js.org/d3-time.v1.min.js"></script>
+<script src="https://d3js.org/d3-time-format.v2.min.js"></script>
+<script src="https://d3js.org/d3-scale.v2.min.js"></script>
+
 
         <style> /* set the CSS */
             html, body {
@@ -47,6 +59,44 @@
               padding: 12px;
               background: rgba(255, 255, 255, 0.8);
             }
+
+            .canton-boundary {
+              fill: none;
+              stroke: #fff;
+              stroke-linejoin: round;
+            }
+			.d3-tip2 {
+			  line-height: 1;
+			  font-weight: bold;
+			  padding: 12px;
+			  background: black;
+			  color: #fff;
+			  border-radius: 2px;
+			  opacity: 0.001%;
+			}
+			.d3-tip2:after {
+			  box-sizing: border-box;
+			  display: inline;
+			  font-size: 10px;
+			  width: 100%;
+			  line-height: 1;
+			  color: black;
+			  content: "\25BC";
+			  position: absolute;
+			  text-align: center;
+			  opacity: 0.001%;
+			}
+
+			.d3-tip2.n:after {
+			  margin: -1px 0 0 0;
+			  top: 100%;
+			  left: 0;
+			  opacity: 0.001%;
+			}
+			.area:hover {
+				fill: brown;
+			}
+
   	    </style>
     </head>
     <body>

@@ -148,7 +148,7 @@ def filter_data():
 		q = {"bool":query}
 		print('QUERY', q)
 
-		resp = es.search(index='dlrmetadata', doc_type='doc', body={"query":q}, size=10000)
+		resp = es.search(index='dlrmetadata', doc_type='doc', body={"query":q}, size=100)
 
 		all_data = [d['_source'] for d in resp['hits']['hits']]
 		all_data = pd.DataFrame(all_data)
@@ -163,12 +163,13 @@ def filter_data():
 		data['val'] = data[request.args.get("measure_variable")]
 		data.to_json("data.json")
 		tdict = data[['scene_lat', 'scene_lon', 'year', "val", "mission0"	]].to_dict(orient='index')
-		tdict['miny'] = data['year'].min()
-		tdict['maxy'] = data['year'].max()
+		#tdict['miny'] = data['year'].min()
+		#tdict['maxy'] = data['year'].max()
 
 		# with open('data.json', 'w') as file:
 		# 	json.dump(data, file)
 		#print('QUERY RESPONSE: ', resp)
+		print(tdict)
 		return jsonify(tdict)
 	except Exception as e:
 		print(e)

@@ -81,12 +81,7 @@ def download_csv():
 def index():
 	d3data = get_measured_variables()
 	docnum = es.count(index='dlrmetadata', filter_path=['count'])['count']
-<<<<<<< HEAD
-	return render_template('home.html', script=script, d3data=d3data, docnum=docnum)
-=======
-
 	return render_template('home.html',  d3data=d3data, docnum=docnum)
->>>>>>> e7f846dee1dfa6a2cadf387c048e368d3183ad49
 
 @app.route('/data_servant', methods=['POST', 'GET'])
 def data_servant():
