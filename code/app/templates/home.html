@@ -19,11 +19,14 @@
 	<input type="text" id="starttimeMax" value="2020-12-24", class="form_datetime form-control col-md-4 float-sm-right" />
 
 	<br><br>
-	<label for="latitude_longitude">Laditude, Longitude (use "_" instead of floating point)</label>
-	<input type="text" id="latitude_longitude" value="", class="form_datetime form-control col-md-4 float-sm-right" />
 	<div>
-			<label for="measure_variable">Variable</label>
-			<input type="text" id="measure_variable" value="percentageofpote1", class="form_datetime form-control col-md-4 float-sm-right" />
+		<label for="latitude_longitude">Laditude, Longitude (use "_" instead of floating point)</label>
+		<input type="text" id="latitude_longitude" value="", class="form_datetime form-control col-md-4 float-sm-right" />
+	</div>
+	<br><br>
+	<div>
+		<label for="measure_variable">Variable</label>
+		<input type="text" id="measure_variable" value="percentageofpote1", class="form_datetime form-control col-md-4 float-sm-right" />
 	</div>
 </div>
 
@@ -518,7 +521,8 @@ $("#data_request_btn").click(function(){
 					+ "</tr>"
 				);
 			});
-			$( "#slider-range" ).slider( "option", "min", data.minmax.miny );
+			$( "#slider-range" ).slider( "option", "min", data.minmax.miny );			
+			$( "#slider-range" ).slider( "option", "value", data.minmax.miny );
 			$( "#slider-range" ).slider( "option", "max", data.minmax.maxy );
 			d3worldmap(data.data);
 		},
