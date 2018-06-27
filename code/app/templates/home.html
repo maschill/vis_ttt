@@ -1,69 +1,77 @@
 {% extends "layout.html" %}
 
 {% block body %}
-<h1>Home - Analytics - Visualization</h1>
-<h1>Also: Best UX by far!</h1>
 
-<button type="button" class="btn border border-dark btn-default float-sm-right" id="data_request_btn">Request Data</button>
+<h1>Home - Analytics - Visualization - Also: Best UX by far!</h1>
 
-<h3 class="float-sm-left"> Status:  </h3> <h3 class="float-sm-left px-5"> <div  id="dyn_block">waiting for request</div></h3>
-<br>
-<br><br><br>
-<label for="mission0">Mission Name:</label>
-<input type="text", value = "", id="mission0", class="form-control float-sm-right col-md-6">
+<div class="border border-dark p-5 my-5 col-md-12 bg-light">
+	<button type="button" class="btn border border-dark btn-default float-sm-right" id="data_request_btn">Request Data</button>
 
-<br><br>
-<label for="starttimeMin">Select Starttime</label>
-<input type="text" id="starttimeMin" value="1900-01-01", class="form_datetime form-control col-md-4 float-sm-right" />
-<input type="text" id="starttimeMax" value="2020-12-24", class="form_datetime form-control col-md-4 float-sm-right" />
+	<h3 class="float-sm-left"> Status:  </h3> <h3 class="float-sm-left pl-5"> <div  id="dyn_block">waiting for request</div></h3>
+	<br>
+	<br><br><br>
+	<label for="mission0">Mission Name:</label>
+	<input type="text", value = "", id="mission0", class="form-control float-sm-right col-md-6">
 
-<br><br>
-<label for="latitude_longitude">Laditude, Longitude (use "_" instead of floating point)</label>
-<input type="text" id="latitude_longitude" value="", class="form_datetime form-control col-md-4 float-sm-right" />
-<br><br>
+	<br><br>
+	<label for="starttimeMin">Select Starttime</label>
+	<input type="text" id="starttimeMin" value="1900-01-01", class="form_datetime form-control col-md-4 float-sm-right" />
+	<input type="text" id="starttimeMax" value="2020-12-24", class="form_datetime form-control col-md-4 float-sm-right" />
 
-<label for="measure_variable">Variable</label>
-<input type="text" id="measure_variable" value="percentageofpote1", class="form_datetime form-control col-md-4 float-sm-right" />
-<br><br>
-
-<div>
-<div id="chart" style="overflow:auto; height:300px;"></div>
-</div>
-<div>
-	<div id="chart2" style="overflow:hidden; height:200px;"></div>
-</div>
-
-<div class="py-5 col-md-12 float-sm-right">
-	<div class="col-md-6 col-sm-12">
-		<button type="button" class="btn border border-dark btn-default float-sm-right px-4" id="data_show_toggle">Show Data</button>
-		<a class="float-sm-right px-4" href="/csv/"><button type="button" class="btn border border-dark btn-default" id="data_download">Download Data</button></a>
+	<br><br>
+	<label for="latitude_longitude">Laditude, Longitude (use "_" instead of floating point)</label>
+	<input type="text" id="latitude_longitude" value="", class="form_datetime form-control col-md-4 float-sm-right" />
+	<div>
+			<label for="measure_variable">Variable</label>
+			<input type="text" id="measure_variable" value="percentageofpote1", class="form_datetime form-control col-md-4 float-sm-right" />
 	</div>
 </div>
 
 
-<div class="pb-1"></div><div class="col-sm-1 float-sm-left pb-2"> Slider:</div> <div class="px-3 col-sm-1 float-sm-left pb-2" id="slider_val">50</div>
+<div class="border border-dark p-5 col-md-12 bg-light">
+	<h3 class="text-center">Measured Variables</h3>
+	<div id="chart" style="overflow-y:scroll; overflow-x:hidden; height:300px;"></div>
+	<div id="chart2" style="overflow:hidden; height:200px;"></div>
 
-<div id="slider-range" class="col-md-4 float-sm-right px-3"></div>
+</div>
+
+<div class="col-md-12 bg-light border border-dark p-5">
+	<div class="m-5 py-5" id="map" style="min-width:320px;width :50%;height : 600px"></div>
+
+	<!-- <div class="py-5 m-5 col-md-12 float-sm-right"> -->
+		<div class="col-md-6 col-sm-12 float-sm-right">
+			<button type="button" class="btn border border-dark btn-default float-sm-right px-4" id="data_show_toggle">Show Data</button>
+			<a class="float-sm-right px-4" href="/csv/"><button type="button" class="btn border border-dark btn-default" id="data_download">Download Data</button></a>
+		</div>
+	<!-- </div>	 -->
+
+
+	<div class="pb-1"></div><div class="col-sm-1 float-sm-left pb-2"> Slider:</div> 
+	<div class="px-3 col-sm-1 float-sm-left pb-2" id="slider_val">50</div>
+	<div id="slider-range" class="col-md-4 float-sm-right px-3"></div>
+
+</div>
+
 
 <table id="testTable"  class="table table-striped pb-5">
-		<thead>
-			<tr class="thead-dark">
-				<th>Mission</th>
-				<th>Year</th>
-				<th>Lat</th>
-				<th>Lon</th>
-				<th id="valcol">percentageofpote1</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-			</tr>
-		</tbody>
-	</table>
+	<thead>
+		<tr class="thead-dark">
+			<th>Mission</th>
+			<th>Year</th>
+			<th>Lat</th>
+			<th>Lon</th>
+			<th id="valcol">percentageofpote1</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+		</tr>
+	</tbody>
+</table>
 
 
 
@@ -249,263 +257,218 @@
 		  .attr("class", "x axis")
 		  .attr("transform", "translate(0," + height + ")")
 		  .call(xLAxis) //.ticks(10,"%"))
+		// svg.append("text")
+		//     .attr("class", "title")
+		//     .attr("x", (width / 2))
+		//     .attr("y", 0 - (margin.top / 2))
+		//     .attr("text-anchor", "middle")
+		//     .style("font-size", "16px")
+		// 	.style("font-weight", "bold")
+		//     .text("Measurements in DLR Data");
+
+		// svg.append("text")
+		//     .attr("class", "x-label")
+		//     .attr("text-anchor", "middle")
+		//     .attr("x", width/2+(width/2-gap)/2)
+		//     .attr("y", height+40)
+		//     .text("Coefficient of variation");
+
+		// svg.append("text")
+		//     .attr("class", "x-label")
+		//     .attr("text-anchor", "middle")
+		//     .attr("x", (width/2-gap)/2)
+		//     .attr("y", height+40)
+		//     .text("Relative requency of variable");
 
 		svg.select("xaxis")
 			.style("font-size","15px");
 
 </script>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div class="col-md-12 py-10">
-	<div id = "map" style = "float : left; min-width:320px;width :50%;height : 600px"></div>
-	</div>
-
 <script type="text/javascript">
-
+var placesByYear = null;
 var places = null;
+
 function ajaxCallBack(data){
-	places = data;
+	places = Object.values(data);
+	placesByYear = d3.nest()
+	.key(function(d){ return d.year;})
+	.entries(places);
+}
+
+function grp(data){
+	placesByYear = d3.nest()
+	.key(function(d){ return d.year;})
+	.entries(data.data);
+	console.log(placesByYear);
 }
 
 function d3worldmap(data){
+	
+	ajaxCallBack(data);
 
-	var places = Object.values(data.data)
-var width = 1800,
-    height = 600;
-var color= d3.scale.ordinal()
-			.domain([1,2,3,4,5,6,7,8,9])
-			.range(colorbrewer.Oranges[9]);
+	var width = 1800,
+		height = 600;
+	var color= d3.scale.ordinal()
+		.domain([1,2,3,4,5,6,7,8,9])
+		.range(colorbrewer.Oranges[9]);
 
-var formatDateIntoYear = d3.timeFormat("%Y");
-var formatDate = d3.timeFormat("%b %Y");
-var parseDate = d3.timeParse("%m/%d/%y");
-
-var startDate = new Date("2004-11-01"),
-    endDate = new Date("2017-04-01");
+	/*var projection = d3.geo.mercator()
+		.scale(800)
+		.translate([-500,600]);*/
 
 
-/*var projection = d3.geo.mercator()
-    .scale(800)
-    .translate([-500,600]);*/
+	var projection = d3.geo.mercator().scale(100).translate([width/4,height/2]);
+	var path = d3.geo.path()
+		.projection(projection);
 
-<!--  -->
+	var svg = d3.select("#map").append("svg")
+		.attr("viewBox", "0 0 800 600")
+		.attr("preserveAspectRatio", "xMidYMid meet");
+	var data;
 
-var projection = d3.geo.mercator().scale(100).translate([width/4,height/2]);
-var path = d3.geo.path()
-    .projection(projection);
+	// Define color map
+	var mycolors = ["red", "black", "green", "blue"]
+	var mycolorsRange = d3.range(0,1,(1/(mycolors.length-1)));
+		mycolorsRange.push(1)
 
-var svg = d3.select("#map").append("svg")
-    .attr("viewBox", "0 0 800 600")
-	.attr("preserveAspectRatio", "xMidYMid meet");
-var data;
+	var colorScale = d3.scale.linear()
+		.range(mycolors)
+		.domain(mycolorsRange)
+		.interpolate(d3.interpolateHcl);
 
-// Define color map
-var mycolors = ["red", "black", "green", "blue"]
-var mycolorsRange = d3.range(0,1,(1/(mycolors.length-1)));
-mycolorsRange.push(1)
+	var colorInterpolate = d3.scale.linear()
+		.range([0,1])
 
-var colorScale = d3.scale.linear()
-   .range(mycolors)
-   .domain(mycolorsRange)
-   .interpolate(d3.interpolateHcl);
+	var defs = svg.append("defs")
+		defs.append("linearGradient")
+			.attr("id", "linear-gradient")
+			.attr("x1", "0%")
+			.attr("y1", "0%")
+			.attr("x2", "0%")
+			.attr("y2", "100%")
+			.selectAll("stop")
+			.data(mycolors)
+			.enter().append("stop")
+			.attr("offset",  function(d,i) {return i/(mycolors.length-1);})
+			.attr("stop-color", function(d){return d;})
 
-var colorInterpolate = d3.scale.linear()
-	.range([0,1])
+	//append legendS
+	var legend = svg.append("g")
+		.attr("class", "legendWrapper")
+		.attr("transfform", "translate("+(width) + "," + (height))
 
-var defs = svg.append("defs")
-defs.append("linearGradient")
-	.attr("id", "linear-gradient")
-	.attr("x1", "0%")
-	.attr("y1", "0%")
-	.attr("x2", "0%")
-	.attr("y2", "100%")
-	.selectAll("stop")
-	.data(mycolors)
-	.enter().append("stop")
-	.attr("offset",  function(d,i) {return i/(mycolors.length-1);})
-	.attr("stop-color", function(d){return d;})
+	legend.append("rect")
+		.attr("x", 50)
+		.attr("y", 0)
+		.attr("width", 40)
+		.attr("height", height)
+		.style("fill", "url(#linear-gradient)")
 
-//append legendS
-var legend = svg.append("g")
-.attr("class", "legendWrapper")
-.attr("transfform", "translate("+(width) + "," + (height))
+	// Set axis
+	var yScale = d3.scale.linear()
+		.range([0, height])
+		//.domain([0,100])
 
-legend.append("rect")
-	.attr("x", 50)
-	.attr("y", 0)
-	.attr("width", 40)
-	.attr("height", height)
-	.style("fill", "url(#linear-gradient)")
+	var yAxis = d3.svg.axis()
+		.ticks(5)
+		.tickFormat(d3.format(""))
+		.scale(yScale)
+		.orient("right")
 
-// Set axis
-var yScale = d3.scale.linear()
-	.range([0, height])
-	//.domain([0,100])
+	places.forEach(function(i,d){
+		colorInterpolate.domain([d3.min(places, function(d) { return d.val; }),
+			d3.max(places, function(d) { return d.val; })]);
+		yScale.domain([d3.min(places, function(d) { return d.val; }),
+			d3.max(places, function(d) { return d.val; })]);
+	});
 
-var yAxis = d3.svg.axis()
-	.ticks(5)
-	.scale(yScale)
-	.orient("right")
+	svg.append("g")
+		.attr("class", "axis")
+		.attr("transform","translate("+ 0 +","+ 0 +")")
+		.call(yAxis);
 
-places.forEach(function(d,i){
-	colorInterpolate.domain([d3.min(places, function(d) { return d.val; }),
-		d3.max(places, function(d) { return d.val; })]);
-	yScale.domain([d3.min(places, function(d) { return d.val; }),
-		d3.max(places, function(d) { return d.val; })]);
-});
+	d3.json("https://s3-us-west-2.amazonaws.com/vida-public/geo/world-topo-min.json", function(error, swiss) {
+	if (error) throw error;
 
-svg.append("g")
-	.attr("class", "axis")
-	.attr("transform","translate("+ 0 +","+ 0 +")")
-	.call(yAxis);
+	var cantons = topojson.feature(swiss, swiss.objects.countries);
 
-
-// Set slider
-var svgSlider = d3.select("#slider")
-    .append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height);
-
-var x = d3.scaleTime()
-    .domain([startDate, endDate])
-    .range([0, width])
-    .clamp(true);
-
-var slider = svgSlider.append("g")
-    .attr("class", "slider")
-    .attr("transform", "translate(" + margin.left + "," + height / 2 + ")");
-    
-slider.append("line")
-    .attr("class", "track")
-    .attr("x1", x.range()[0])
-    .attr("x2", x.range()[1])
-  .select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
-    .attr("class", "track-inset")
-  .select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
-    .attr("class", "track-overlay")
-    .call(d3.drag()
-        .on("start.interrupt", function() { slider.interrupt(); })
-        .on("start drag", function() { update(x.invert(d3.event.x)); }));
-
-slider.insert("g", ".track-overlay")
-    .attr("class", "ticks")
-    .attr("transform", "translate(0," + 18 + ")")
-  .selectAll("text")
-    .data(x.ticks(10))
-    .enter()
-    .append("text")
-    .attr("x", x)
-    .attr("y", 10)
-    .attr("text-anchor", "middle")
-    .text(function(d) { return formatDateIntoYear(d); });
-
-var handle = slider.insert("circle", ".track-overlay")
-    .attr("class", "handle")
-    .attr("r", 9);
-
-var label = slider.append("text")
-    .attr("class", "label")
-    .attr("text-anchor", "middle")
-    .text(formatDate(startDate))
-    .attr("transform", "translate(0," + (-25) + ")")
+			//svg.call(tip);
+		var group=svg.selectAll("g")
+			.data(cantons.features)
+			.enter()
+			.append("g");
+			//.on('mouseover', tip.show)
+				//.on('mouseout', tip.hide)
 
 
-d3.json("https://s3-us-west-2.amazonaws.com/vida-public/geo/world-topo-min.json", function(error, swiss) {
-  if (error) throw error;
+		var tip = d3.tip()
+				.attr('class', 'd3-tip')
+				.offset([250, 0])
+				.style("left", "300px")
+				.style("top", "400px")
+				.html(function(d) {
+					return d.val;
+				})
 
-  var cantons = topojson.feature(swiss, swiss.objects.countries);
-
-		//svg.call(tip);
-	var group=svg.selectAll("g")
-		.data(cantons.features)
-		.enter()
-		.append("g");
-		//.on('mouseover', tip.show)
-			//.on('mouseout', tip.hide)
+			svg.call(tip);
 
 
-	var tip = d3.tip()
-			.attr('class', 'd3-tip')
-			.offset([250, 0])
-			.style("left", "300px")
-			.style("top", "400px")
-			.html(function(d) {
-				return d.val;
-			})
+	svg.selectAll(".pin")
+		.data(places)
+		.enter().append("circle", ".pin")
+		.attr("r", 5)
+		.attr("transform", function(d) {
+			return "translate(" + projection([
+						d.scene_lon,
+						d.scene_lat
+						]) + ")";
+						})
+		.style('fill', function(d){return colorScale(colorInterpolate(d.val))})
+		.on('mouseover', tip.show)
+		.on('click', tip.hide);
 
-		svg.call(tip);
+		//var projection = d3.geo.mercator().scale(900).translate([-600,700]);
+	var path= d3.geo.path().projection(projection);
 
+	var areas= group.append("path")
+		.attr("d", path)
+		.attr("class", "area")
+		.attr("fill","darkblue");
 
-svg.selectAll(".pin")
-.data(places)
-.enter().append("circle", ".pin")
-.attr("r", 5)
-.attr("transform", function(d) {
-return "translate(" + projection([
-			d.scene_lon,
-			d.scene_lat
-			]) + ")";
-			})
-.style('fill', function(d){return colorScale(colorInterpolate(d.val))})
-.on('mouseover', tip.show)
-.on('click', tip.hide);
-
-//var projection = d3.geo.mercator().scale(900).translate([-600,700]);
-var path= d3.geo.path().projection(projection);
-
-var areas= group.append("path")
-.attr("d", path)
-.attr("class", "area")
-.attr("fill","darkblue");
-
-});
+	});
 }
 
 $(function() {
-$.ajax({
-		type:'GET',
-		url:"/api/filter?mission0=" + $("#mission0").val()
-					+   "&starttimeMin=" + $("#starttimeMin").val()
-					+   "&starttimeMax=" + $("#starttimeMax").val()
-					+   "&latitude_longitude=" + $("#latitude_longitude").val()
-					+   "&measure_variable=" + $("#measure_variable").val(),
-		data:{},
-		contentType: 'application/json;charset=UTF-8',
-		cache: false,
-		success: function (data) {
-			//ajaxCallBack(data);
-			console.log('sucessful answer received!');
-			$("#testTable tbody").empty();
-			$( "#slider-range" ).slider( "option", "min", data.miny );
-			$( "#slider-range" ).slider( "option", "max", data.maxy );
-			$.each(data, function(i,item){
-				$("#testTable tbody").append(
-					"<tr>"
-						+ "<td>" + item.mission0 + "</td>"
-						+ "<td>" + item.year + "</td>"
-						+ "<td>" + item.scene_lat + "</td>"
-						+ "<td>" + item.scene_lon + "</td>"
-						+ "<td>" + item.val + "</td>"
-					+ "</tr>"
-				);
-			});
-		},
-	});
+// $.ajax({
+// 		type:'GET',
+// 		url:"/api/filter?mission0=" + $("#mission0").val()
+// 					+   "&starttimeMin=" + $("#starttimeMin").val()
+// 					+   "&starttimeMax=" + $("#starttimeMax").val()
+// 					+   "&latitude_longitude=" + $("#latitude_longitude").val()
+// 					+   "&measure_variable=" + $("#measure_variable").val(),
+// 		data:{},
+// 		contentType: 'application/json;charset=UTF-8',
+// 		cache: false,
+// 		success: function (data) {
+// 			//ajaxCallBack(data);
+// 			console.log('sucessful answer received!');
+// 			$("#testTable tbody").empty();
+// 			$( "#slider-range" ).slider( "option", "min", data.miny );
+// 			$( "#slider-range" ).slider( "option", "max", data.maxy );
+// 			$.each(data, function(i,item){
+// 				$("#testTable tbody").append(
+// 					"<tr>"
+// 						+ "<td>" + item.mission0 + "</td>"
+// 						+ "<td>" + item.year + "</td>"
+// 						+ "<td>" + item.scene_lat + "</td>"
+// 						+ "<td>" + item.scene_lon + "</td>"
+// 						+ "<td>" + item.val + "</td>"
+// 					+ "</tr>"
+// 				);
+// 			});
+// 		},
+// 	});
 
 $( "#slider-range" ).slider({
 	min: 0,
@@ -557,7 +520,7 @@ $("#data_request_btn").click(function(){
 			});
 			$( "#slider-range" ).slider( "option", "min", data.minmax.miny );
 			$( "#slider-range" ).slider( "option", "max", data.minmax.maxy );
-			d3worldmap(data);
+			d3worldmap(data.data);
 		},
 		error: function() {
 			$("#dyn_block").html("Error. Pleas Try again!");
