@@ -444,7 +444,7 @@ function d3worldmap(data){
 		.attr("fill","darkblue");
 
 	});
-
+}
 function updatescatter(places) {
 	svg.selectAll(".pin")
 	.data(places)
@@ -463,9 +463,10 @@ function updatescatter(places) {
 	.on('mouseout', tip.hide);
 };
 
-}
+
 
 $(function() {
+
 $( "#slider-range" ).slider({
 	min: 0,
 	max: 1000,
@@ -475,6 +476,7 @@ $( "#slider-range" ).slider({
 
 	}
 });
+
 $( "#testTable" ).hide();
 $( "#data_show_toggle" ).click(function() {
 	 $( "#testTable" ).toggle();
@@ -503,7 +505,7 @@ $("#data_request_btn").click(function(){
 			$("#valcol").html($("#measure_variable").val());
 			$("#testTable tbody").empty();
 			$('#data_show_toggle')[0].scrollIntoView(true);
-			$.each(data, function(i,item){
+			$.each(data.data, function(i,item){
 				$("#testTable tbody").append(
 					"<tr>"
 						+ "<td>" + item.mission0 + "</td>"
@@ -526,6 +528,40 @@ $("#data_request_btn").click(function(){
 		},
 	});
 });
+
+
+
+var dateFormat = "yyyy-mm-dd",
+	from = $( "#starttimeMin" )
+        .datepicker({
+          defaultDate: "+1w",
+          changeMonth: true,
+          numberOfMonths: 1,
+		  dateFormat : "yy-mm-dd"
+        })
+        .on( "change", function() {
+          to.datepicker( "option", "minDate", getDate( this ) );
+        }),
+    to = $( "#starttimeMax" ).datepicker({
+        defaultDate: "+1w",
+        changeMonth: true,
+        numberOfMonths: 1,
+		dateFormat : "yy-mm-dd"
+      })
+      .on( "change", function() {
+        from.datepicker( "option", "maxDate", getDate( this ) );
+});
+function getDate( element ) {
+      var date;
+      try {
+        date = $.datepicker.parseDate( dateFormat, element.value );
+      } catch( error ) {
+        date = null;
+      }
+ 
+      return date;
+}
+
 });
 
 </script>
