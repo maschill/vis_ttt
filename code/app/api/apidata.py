@@ -150,27 +150,32 @@ def filter_data():
 
 		resp = es.search(index='dlrmetadata', doc_type='doc', body={"query":q}, size=100)
 
-		all_data = [d['_source'] for d in resp['hits']['hits']]
-		all_data = pd.DataFrame(all_data)
-		df = all_data
-		df['starttime1']=pd.to_datetime(df['starttime1'])
-		data = df
+		data = [d['_source'] for d in resp['hits']['hits']]
+		data = pd.DataFrame(data)
+		data['starttime1']=pd.to_datetime(data['starttime1'])
+		
 		data['month_year'] = data.starttime1.dt.to_period('M')
-		data['year'] = pd.to_numeric(data.starttime1.dt.year)
 		data['month'] = data.starttime1.dt.month
 		data['scene_lat'] = data['polygonmeanlat']
 		data['scene_lon'] = data['polygonmeanlon']
 		data['val'] = data[request.args.get("measure_variable")]
+		data["rlat"] = data['scene_lat'].apply(lambda x: round(x))
+		data["rlon"] = data['scene_lon'].apply(lambda x: round(x))
+		# print(data.groupby(['year', 'rlat', 'rlon'])['val'].mean())
+		data = data[data["val"] != 0]
+		data.dropna(axis=0)
+		data['year'] = pd.to_numeric(data.starttime1.dt.year)
+		mm = {}
 		data.to_json("data.json")
-		tdict = data[['scene_lat', 'scene_lon', 'year', "val", "mission0"	]].to_dict(orient='index')
-		#tdict['miny'] = data['year'].min()
-		#tdict['maxy'] = data['year'].max()
+		data.index = data.index.map(str)
+		tdict = data[['scene_lat', 'scene_lon', 'year', "val", "mission0"]].to_dict(orient='index')
 
+		mm["miny"] = int(data['year'].min())
+		mm["maxy"] = int(data['year'].max())
 		# with open('data.json', 'w') as file:
 		# 	json.dump(data, file)
 		#print('QUERY RESPONSE: ', resp)
-		print(tdict)
-		return jsonify(tdict)
+		return jsonify(data=tdict, minmax=mm)
 	except Exception as e:
 		print(e)
 		return jsonify({ "error": "500 - internal server error" })
