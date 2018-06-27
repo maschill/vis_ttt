@@ -87,9 +87,9 @@
     var docnum = {{ docnum | safe }}
     var gap = 10
 
-        var margin = {top: 60, right: 20, bottom: 80, left: 200},
+        var margin = {top: 05, right: 20, bottom: 00, left: 200},
 			width = 960 - margin.left - margin.right,
-			height = 1500 - margin.top - margin.bottom;
+			height = 1305 - margin.top - margin.bottom;
 
 		var formatPercent = d3.format(".0%");
 
@@ -209,7 +209,7 @@
 		    .range([width/2+gap/2, width]);
 
 		var xL = d3.scale.linear()
-		    .range([0,width/2-gap/2]);
+		    .range([width/2-gap/2, 0]);
 
 		var xRAxis = d3.svg.axis()
 			.scale(xR)
@@ -223,7 +223,8 @@
 			.ticks(3)
 			.orient("top")
 			.tickSize(3)
-			.tickFormat(function(d) { return Math.round(Math.log(d)); });
+			.tickPadding(-20)
+			.tickFormat(function(d) { return Math.round(d); });
 
 		var svg = d3.select("#chart2").append("svg")
 			.attr("width", width + margin.left + margin.right)
@@ -249,7 +250,7 @@
 			.attr("text-anchor", "middle")
 			.attr("x", (width/2-gap)/2)
 			.attr("y", height+40)
-			.text("Relative requency of variable");
+			.text("Relative frequency of variable");
 
 		svg.append("g")
 		  .attr("class", "x axis")
