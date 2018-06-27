@@ -27,7 +27,10 @@
 <br><br>
 
 <div>
-<div id="chart" style="overflow:scroll; height:300px;"></div>
+<div id="chart" style="overflow:auto; height:300px;"></div>
+</div>
+<div>
+	<div id="chart2" style="overflow:hidden; height:200px;"></div>
 </div>
 
 <div class="py-5 col-md-12 float-sm-right">
@@ -62,6 +65,8 @@
 		</tbody>
 	</table>
 
+
+
 <script>
     var data = {{ d3data | safe }}
 
@@ -91,7 +96,6 @@
 			.ticks(3)
 			.orient("top")
 			.tickSize(3)
-
 
 		var xLAxis = d3.svg.axis()
 			.scale(xL)
@@ -125,13 +129,6 @@
 		  .append("g")
 			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-		var svg_footer = d3.select("#d3_xaxis").append("svg")
-			.attr("width", width + margin.left + margin.right)
-			.attr("height", 88)
-		  .append("g")
-			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-
 		svg.call(tipL);
 		svg.call(tipR);
 
@@ -140,18 +137,6 @@
 			xR.domain([0.1, d3.max(data, function(d) { return Math.abs(d.std_deviation / d.avg); })]);
 			xL.domain([0, d3.max(data, function(d) { return (100 * d.count / docnum); })]);
 		});
-
-
-
-	 svg_footer.append("g")
-		  .attr("class", "x axis")
-		  .attr("transform", "translate(" + (width+gap)/2 + "," +0+ ")")
-		  .call(xRAxis) //.ticks(10, "%"))
-
-	 svg_footer.append("g")
-		  .attr("class", "x axis")
-		  .attr("transform", "translate(0," + height + ")")
-		  .call(xLAxis) //.ticks(10,"%"))
 
 	  svg.append("g")
 		  .attr("class", "axis--y")
@@ -190,35 +175,84 @@
 				  .on("click", function(d) {$("#measure_variable").val(d.fname); })
 				  //.on("click", function(d) {console.log("event = ", d.fname)})
 
+		svg.select("yaxis")
+			.style("font-size","15px");
+</script>
+
+<script>
+    var data = {{ d3data | safe }}
+
+    data.sort(function(x,y){
+        return d3.ascending(Math.abs(x.std_deviation / x.avg), Math.abs(y.std_deviation / y.avg))})
+
+    var docnum = {{ docnum | safe }}
+    var gap = 10
+
+        var margin = {top: 60, right: 20, bottom: 80, left: 200},
+			width = 960 - margin.left - margin.right,
+			height = 100 - margin.top - margin.bottom;
+
+		var formatPercent = d3.format(".0%");
+
+		var xR = d3.scale.log()
+		    .range([width/2+gap/2, width]);
+
+		var xL = d3.scale.linear()
+		    .range([0,width/2-gap/2]);
+
+		var xRAxis = d3.svg.axis()
+			.scale(xR)
+			.ticks(3)
+			.orient("top")
+			.tickSize(3)
+			//.tickFormat(function(d) { return Math.round(Math.log(d)); });
+
+		var xLAxis = d3.svg.axis()
+			.scale(xL)
+			.ticks(3)
+			.orient("top")
+			.tickSize(3)
+			.tickFormat(function(d) { return Math.round(Math.log(d)); });
+
+		var svg = d3.select("#chart2").append("svg")
+			.attr("width", width + margin.left + margin.right)
+			.attr("height", height + margin.top + margin.bottom)
+		  .append("g")
+			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+		data.forEach(function(d,i){
+			y.domain(data.map(function(d) { return d.fname; }));
+			xR.domain([0.1, d3.max(data, function(d) { return Math.abs(d.std_deviation / d.avg); })]);
+			xL.domain([0, d3.max(data, function(d) { return (100 * d.count / docnum); })]);
+		});
 
 		svg.append("text")
-		    .attr("class", "title")
-		    .attr("x", (width / 2))
-		    .attr("y", 0 - (margin.top / 2))
-		    .attr("text-anchor", "middle")
-		    .style("font-size", "16px")
-			.style("font-weight", "bold")
-		    .text("Measurements in DLR Data");
+			.attr("class", "x-label")
+			.attr("text-anchor", "middle")
+			.attr("x", width/2+(width/2-gap)/2)
+			.attr("y", height+40)
+			.text("Coefficient of variation");
 
 		svg.append("text")
-		    .attr("class", "x-label")
-		    .attr("text-anchor", "middle")
-		    .attr("x", width/2+(width/2-gap)/2)
-		    .attr("y", height+40)
-		    .text("Coefficient of variation");
+			.attr("class", "x-label")
+			.attr("text-anchor", "middle")
+			.attr("x", (width/2-gap)/2)
+			.attr("y", height+40)
+			.text("Relative requency of variable");
 
-		svg.append("text")
-		    .attr("class", "x-label")
-		    .attr("text-anchor", "middle")
-		    .attr("x", (width/2-gap)/2)
-		    .attr("y", height+40)
-		    .text("Relative requency of variable");
+		svg.append("g")
+		  .attr("class", "x axis")
+		  .attr("transform", "translate(0," + height + ")")
+		  .call(xRAxis) //.ticks(10, "%"))
+
+	 	svg.append("g")
+		  .attr("class", "x axis")
+		  .attr("transform", "translate(0," + height + ")")
+		  .call(xLAxis) //.ticks(10,"%"))
 
 		svg.select("xaxis")
 			.style("font-size","15px");
 
-		svg.select("yaxis")
-			.style("font-size","15px");
 </script>
 
 
