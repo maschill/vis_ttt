@@ -88,71 +88,91 @@ def bokeh_serv():
 
 @bp.route('/filter', methods=['GET', 'POST'])
 def filter_data():
-	rang = defaultdict(dict)
-	match = defaultdict(dict)
+	try:
+		rang = defaultdict(dict)
+		match = defaultdict(dict)
 
-	match['mission0'] = ''
+		match['mission0'] = ''
 
-	query = {
-		"must": [
-			{"range": {"starttime1": rang["starttime1"]}},
-			{
-				"exists": {
-					"field": 'polygonmeanlon',
-				}
-			},
-			{
-				"exists": {
-					"field": 'polygonmeanlat'
-				}
-			}
-
-		],
-	}
-
-	# Add geo shape filter if values entered
-	geo_filter = {
-		"geo_shape": {
-			"location": {
-				"shape": {
-					"type": "point"
+		query = {
+			"must": [
+				{"range": {"starttime1": rang["starttime1"]}},
+				{
+					"exists": {
+						"field": 'polygonmeanlon',
+					}
 				},
-				"relation": "INTERSECTS"
+				{
+					"exists": {
+						"field": 'polygonmeanlat'
+					}
+				}
+
+			],
+		}
+
+		# Add geo shape filter if values entered
+		geo_filter = {
+			"geo_shape": {
+				"location": {
+					"shape": {
+						"type": "point"
+					},
+					"relation": "INTERSECTS"
+				}
 			}
 		}
-	}
 
-	if request.args.get('measure_variable') != '':
-		query['must'] += [{'exists': {'field': request.args.get('measure_variable')}}]
+		if request.args.get('measure_variable') != '':
+			query['must'] += [{'exists': {'field': request.args.get('measure_variable')}}]
 
-	if request.args.get('latitude_longitude') != "" and request.args.get('latitude_longitude') != 'None':
-		geo_filter['geo_shape']['location']['shape']['coordinated'] = [float(request.args.get('latitude_longitude').split(',')[0].strip().replace('_', '.')),
-						                float(request.args.get('latitude_longitude').split(',')[1].strip().replace('_', '.'))]
-		query['filter'] = geo_filter
+		if request.args.get('latitude_longitude') != "" and request.args.get('latitude_longitude') != 'None':
+			geo_filter['geo_shape']['location']['shape']['coordinated'] = [float(request.args.get('latitude_longitude').split(',')[0].strip().replace('_', '.')),
+											float(request.args.get('latitude_longitude').split(',')[1].strip().replace('_', '.'))]
+			query['filter'] = geo_filter
 
-	#if "mission0" in request.args:
-#		match['mission0'] = request.args.get("mission0")
+		#if "mission0" in request.args:
+	#		match['mission0'] = request.args.get("mission0")
 
-	if "starttimeMin" in request.args:
-		rang["starttime1"]["gte"] = request.args.get("starttimeMin")
-	if "starttimeMax" in request.args:
-		rang["starttime1"]["lte"] = request.args.get("starttimeMax")
-		
-	rang['stoptime1']['format'] = "yyyy-MM-dd"
-	rang['starttime1']['format'] = "yyyy-MM-dd"
+		if "starttimeMin" in request.args:
+			rang["starttime1"]["gte"] = request.args.get("starttimeMin")
+		if "starttimeMax" in request.args:
+			rang["starttime1"]["lte"] = request.args.get("starttimeMax")
+			
+		rang['stoptime1']['format'] = "yyyy-MM-dd"
+		rang['starttime1']['format'] = "yyyy-MM-dd"
 
-	if match['mission0'] != '':
-		query["must"].append({"match": {"mission0":request.args.get("mission0")}}) 
+		if match['mission0'] != '':
+			query["must"].append({"match": {"mission0":request.args.get("mission0")}}) 
 
-	q = {"bool":query}
-	print('QUERY', q)
+		q = {"bool":query}
+		print('QUERY', q)
 
-	resp = es.search(index='dlrmetadata', doc_type='doc', body={"query":q}, size=500)
+		resp = es.search(index='dlrmetadata', doc_type='doc', body={"query":q}, size=10000)
 
-	with open('data.json', 'w') as file:
-		json.dump(resp, file)
-	#print('QUERY RESPONSE: ', resp)
-	return jsonify(resp)
+		all_data = [d['_source'] for d in resp['hits']['hits']]
+		all_data = pd.DataFrame(all_data)
+		df = all_data
+		df['starttime1']=pd.to_datetime(df['starttime1'])
+		data = df
+		data['month_year'] = data.starttime1.dt.to_period('M')
+		data['year'] = pd.to_numeric(data.starttime1.dt.year)
+		data['month'] = data.starttime1.dt.month
+		data['scene_lat'] = data['polygonmeanlat']
+		data['scene_lon'] = data['polygonmeanlon']
+		data['val'] = data[request.args.get("measure_variable")]
+		data.to_json("data.json")
+		tdict = data[['scene_lat', 'scene_lon', 'year', "val", "mission0"	]].to_dict(orient='index')
+		tdict['miny'] = data['year'].min()
+		tdict['maxy'] = data['year'].max()
+
+		# with open('data.json', 'w') as file:
+		# 	json.dump(data, file)
+		#print('QUERY RESPONSE: ', resp)
+		return jsonify(tdict)
+	except Exception as e:
+		print(e)
+		return jsonify({ "error": "500 - internal server error" })
 
 @bp.route('/all', methods=['GET'])
 def get_all():

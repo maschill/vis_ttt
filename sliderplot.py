@@ -28,6 +28,7 @@ import pandas as pd
 
 #es = Elasticsearch('http://localhost:9200')
 print('GET DATA')
+<<<<<<< HEAD
 all_data = AjaxDataSource(data_url='http://localhost:8000/api/_bokeh_data', method="POST",
                           polling_interval=2000, if_modified=True, mode="replace")
 
@@ -42,6 +43,14 @@ for country in countries['features']:
         'y': [x[1] for x in country['geometry']['coordinates'][0]],
     }
 worldmapdata = pd.DataFrame(countryObject)
+=======
+
+all_data = pd.read_json("code/app/data.json")
+
+gj = json.load(open('ne_110m_coastline.geojson'))   
+
+
+>>>>>>> e7f846dee1dfa6a2cadf387c048e368d3183ad49
 plot = figure(
     width = 800, 
     height=400, 
@@ -49,24 +58,28 @@ plot = figure(
     x_axis_label='Longitude',
     y_axis_label='Latitude',
 )
-#colors = cbrewer['Paired'][12]
-for (index,country) in enumerate(worldmapdata):
-    plot.patch(
-        x=worldmapdata[country]['x'],
-        y=worldmapdata[country]['y'],
-        #color=colors[index%len(colors)],
-        alpha = .6
-    )
 
+
+
+for i in  gj['features']:
+    plot.line([x[0] for x in i['geometry']['coordinates']], [x[1] for x in i['geometry']['coordinates']])
 
 # These are the parameters I wanted to take a look at
 # water_parameters = ['percentageofpote1', 'westboundingcoor0',
 #                     'eastboundingcoor0', 'northboundingcoo0', 'southboundingcoo0']
 
 # Set up data
+<<<<<<< HEAD
 # source = ColumnDataSource(data=dict(x=data['scene_lat'] , y=data['scene_lon'], c=data['percentageofpote1'] ))
 #var = all_data.data['measure_variable']
 plot.circle(x='scene_lat', y='scene_lon', color='measure_variable', source=all_data, line_width=3, alpha=0.6)
+=======
+source = ColumnDataSource(data=dict(x=all_data['scene_lat'] , y=all_data['scene_lon'], c=all_data['percentageofpote1'] ))
+
+
+
+plot.circle(x='x', y='y', color='c', source=source, line_width=3, alpha=0.6)
+>>>>>>> e7f846dee1dfa6a2cadf387c048e368d3183ad49
 
 
 # Set up widgets
@@ -89,8 +102,15 @@ def update_data(attrname, old, new):
     #print(len(view))
     x = view['scene_lat']
     y = view['scene_lon']
+<<<<<<< HEAD
     #colors = ["#%02x%02x%02x" % (int(255/(r+1)), 100, 100) for r in all_data.data['percentageofpote1']]
     all_data.data = dict(x=x, y=y)#, c=colors)
+=======
+    #c = view['percentageofpote1']
+    # print(min(view['percentageofpote1']), max(view['percentageofpote1']))
+    colors = ["#%02x%02x%02x" % (int(255/(r+1)), 100, 100) for r in all_data['percentageofpote1']]
+    source.data = dict(x=x, y=y, c=colors)
+>>>>>>> e7f846dee1dfa6a2cadf387c048e368d3183ad49
 
 for w in [date]:
     w.on_change('value', update_data)

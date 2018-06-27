@@ -3,11 +3,10 @@
 {% block body %}
 <h1>Home - Analytics - Visualization</h1>
 <h1>Also: Best UX by far!</h1>
-<p>Home - Analytics - Visualization</p>
 
 <button type="button" class="btn border border-dark btn-default float-sm-right" id="data_request_btn">Request Data</button>
 
-<p id="dyn_block"> Start Content</p>
+<h3 class="float-sm-left"> Status:  </h3> <h3 class="float-sm-left px-5"> <div  id="dyn_block">waiting for request</div></h3>
 <br>
 <br><br><br>
 <label for="mission0">Mission Name:</label>
@@ -28,11 +27,40 @@
 <br><br>
 
 <div>
-<div id="d3_xaxis">dingidngidng</div>
 <div id="chart" style="overflow:scroll; height:300px;"></div>
 </div>
 
-{{ script | safe }}
+<div class="py-5 col-md-12 float-sm-right">
+	<div class="col-md-6 col-sm-12">
+		<button type="button" class="btn border border-dark btn-default float-sm-right px-4" id="data_show_toggle">Show Data</button>
+		<a class="float-sm-right px-4" href="/csv/"><button type="button" class="btn border border-dark btn-default" id="data_download">Download Data</button></a>
+	</div>
+</div>
+
+
+<div class="pb-1"></div><div class="col-sm-1 float-sm-left pb-2"> Slider:</div> <div class="px-3 col-sm-1 float-sm-left pb-2" id="slider_val">50</div>
+
+<div id="slider-range" class="col-md-4 float-sm-right px-3"></div>
+
+<table id="testTable"  class="table table-striped pb-5">
+		<thead>
+			<tr class="thead-dark">
+				<th>Mission</th>
+				<th>Year</th>
+				<th>Lat</th>
+				<th>Lon</th>
+				<th id="valcol">percentageofpote1</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+			</tr>
+		</tbody>
+	</table>
 
 <script>
     var data = {{ d3data | safe }}
@@ -193,37 +221,51 @@
 			.style("font-size","15px");
 </script>
 
-<button type="button" class="btn border border-dark btn-default float-sm-right m-5 px-5" id="data_show_toggle">Show Data</button>
-<a href="/csv/"><button type="button" class="btn border border-dark btn-default float-sm-right m-5 px-5" id="data_download">Download Data</button></a>
 
-<table id="testTable" visi class="table table-striped">
-    <thead>
-        <tr class="thead-dark">
-            <th>Mission</th>
-            <th>Starttime</th>
-            <th>Stoptime</th>
-            <th>Coordinates</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-        </tr>
-    </tbody>
-</table>
-
-<br>
-<br>
-<br>
 <script type="text/javascript">
-     $(function() {    
+     $(function() { 
+		$.ajax({
+                type:'GET',
+                url:"/api/filter?mission0=" + $("#mission0").val() 
+                            +   "&starttimeMin=" + $("#starttimeMin").val()
+                            +   "&starttimeMax=" + $("#starttimeMax").val()
+                            +   "&latitude_longitude=" + $("#latitude_longitude").val()
+                            +   "&measure_variable=" + $("#measure_variable").val(),
+                data:{},
+                contentType: 'application/json;charset=UTF-8',
+                cache: false,
+                success: function (data) {
+                    console.log('sucessful answer received!');
+                    $("#testTable tbody").empty();
+					$( "#slider-range" ).slider( "option", "min", data.miny );
+					$( "#slider-range" ).slider( "option", "max", data.maxy );
+                    $.each(data, function(i,item){
+                        $("#testTable tbody").append(
+                            "<tr>"
+								+ "<td>" + item.mission0 + "</td>"
+								+ "<td>" + item.year + "</td>"
+                                + "<td>" + item.scene_lat + "</td>"
+                                + "<td>" + item.scene_lon + "</td>"
+								+ "<td>" + item.val + "</td>"
+                            + "</tr>"
+                        );
+                    });
+                },
+            });
+
+        $( "#slider-range" ).slider({
+			min: 0,
+            max: 1000,
+            slide: function( event, ui){
+				$("#slider_val").html(ui.value);
+
+			}
+		});
 		$( "#testTable" ).hide();
 		$( "#data_show_toggle" ).click(function() {
    			 $( "#testTable" ).toggle();
 		});
+
 		
         $("#data_request_btn").click(function(){
             $("#dyn_block").html("Working");
@@ -242,18 +284,28 @@
                 cache: false,
                 success: function (data) {
                     console.log('sucessful answer received!');
-                    $("#dyn_block").html(data.content);
+                    $("#dyn_block").html("Data delivered.");
+					$("#valcol").html($("#measure_variable").val());
                     $("#testTable tbody").empty();
-                    $.each(data.hits.hits, function(i,item){
+					$('#data_show_toggle')[0].scrollIntoView(true);
+                    $.each(data, function(i,item){
                         $("#testTable tbody").append(
                             "<tr>"
-                                + "<td>" + data.hits.hits[i]._source.mission0 + "</td>"
-                                + "<td>" + data.hits.hits[i]._source.starttime1 + "</td>"
-                                + "<td>" + data.hits.hits[i]._source.coordinates + "</td>"
+								+ "<td>" + item.mission0 + "</td>"
+								+ "<td>" + item.year + "</td>"
+                                + "<td>" + item.scene_lat + "</td>"
+                                + "<td>" + item.scene_lon + "</td>"
+								+ "<td>" + item.val + "</td>"
                             + "</tr>"
                         );
                     });
+					$( "#slider-range" ).slider( "option", "min", data.miny );
+					$( "#slider-range" ).slider( "option", "max", data.maxy );
+
                 },
+				error: function() {
+					$("#dyn_block").html("Error. Pleas Try again!");
+				},
             });
         });
     });
