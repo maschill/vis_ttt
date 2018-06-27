@@ -8,6 +8,7 @@ import pandas as pd
 
 from flask_cors import CORS
 from flask_cors import cross_origin
+from datetime import date
 
 from bokeh.client import pull_session
 from bokeh.embed import server_session
@@ -22,6 +23,27 @@ def get_starttime(starttime):
 		            datetime.datetime.strptime(starttime, '%Y-%m-%d %H:%M:%S.%f')}}})
 	return jsonify(resp)
 
+
+# Change values to datetime for plotting issues
+'''
+data['polygon_center'] = [getpolygonmean(get_polygons(row)) for row in data.iterrows()]
+data['starttime1'] = pd.to_datetime(data[starttime])
+data['month_year'] = data.starttime1.dt.to_period('M')
+data['year'] = data.starttime1.dt.year
+data['month'] = data.starttime1.dt.month
+months_str = [str(float(str(x).replace('-', '.'))) for x in data.month_year]
+data['month_year_str'] = months_str
+months = [float(str(x).replace('-', '.')) for x in data.month_year]
+data['month_year_fl'] = months
+data['day'] = data.starttime1.dt.day
+days = [str(x).replace(str(x),str(x)) for x in data.day]
+data['day'] = days
+data['dmy_str'] = data['month_year_str'] + "." + data['day']
+data['dmy_val'] = [float(str(x).replace('.', '')) for x in data.dmy_str]
+# data['month_date'] = data['month'], data['year']
+data['date'] = [date(int(data['year'][i]), int(data['month'][i]), int(data['day'][i])) for i,j in enumerate(data['dmy_str'])]
+'''
+
 @bp.route("/_bokeh_data", methods=["GET", "POST", "OPTIONS"])
 @cross_origin(allow_headers=['Content-Type'])
 def bokeh_serv():
@@ -32,12 +54,37 @@ def bokeh_serv():
 		df = all_data
 		df['starttime1']=pd.to_datetime(df['starttime1'])
 		data = df
+
 		data['month_year'] = data.starttime1.dt.to_period('M')
 		data['year'] = data.starttime1.dt.year
 		data['month'] = data.starttime1.dt.month
-		data['scene_lat'] = (data['westboundingcoor0'] + data['eastboundingcoor0']) / 2
-		data['scene_lon'] = (data['northboundingcoo0'] + data['southboundingcoo0']) / 2
-		return jsonify(data[['scene_lat', 'scene_lon', 'percentageofpote1', 'year']].to_dict(orient="list"))
+		data['scene_lat'] = data['polygonmeanlat']
+		data['scene_lon'] = data['polygonmeanlon']
+		months_str = [str(float(str(x).replace('-', '.'))) for x in data.month_year]
+		data['month_year_str'] = months_str
+		months = [float(str(x).replace('-', '.')) for x in data.month_year]
+		data['month_year_fl'] = months
+		data['day'] = data.starttime1.dt.day
+		days = [str(x).replace(str(x), str(x)) for x in data.day]
+		data['day'] = days
+		data['dmy_str'] = data['month_year_str'] + "." + data['day']
+		data['dmy_val'] = [float(str(x).replace('.', '')) for x in data.dmy_str]
+		# data['month_date'] = data['month'], data['year']
+		data['date'] = [date(int(data['year'][i]), int(data['month'][i]), int(data['day'][i])) for i, j in
+		                enumerate(data['dmy_str'])]
+
+		datadict = data[['scene_lat', 'scene_lon',
+		              'year', 'month', 'day', 'date']].to_dict(orient="list")
+		datadict['measure_variable'] = data['{}'.format(request.args.get('measure_variable'))]
+
+		#ranges for plot
+		datadict['x_range_min'] = data['scene_lat'].min()
+		datadict['x_range_max'] = data['scene_lat'].max()
+		datadict['y_range_min'] = data['scene_lon'].min()
+		datadict['y_range_max'] = data['scene_lon'].max()
+
+		print(datadict['measure_variable'])
+		return jsonify(datadict)
 
 @bp.route('/filter', methods=['GET', 'POST'])
 def filter_data():
