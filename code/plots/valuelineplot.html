@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Line Chart</title>
+<style>
+
+  .axis path,
+  .axis line{
+    fill: none;
+    stroke: black;
+  }
+
+  .line{
+    fill: none;
+    stroke: blue;
+    stroke-width: 2px;
+  }
+
+  .tick text{
+    font-size: 12px;
+  }
+
+  .tick line{
+    opacity: 0.2;
+  }
+
+</style>
+</head>
+<body>
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+<script>
+
+var margin = {top: 20, right: 100, bottom: 40, left: 100},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+var dataset = [
+            {"date":2012, "value": 3},
+            {"date":2013, "value": 2},
+            {"date":2014, "value": 33},   
+            {"date":2015, "value": 13},
+            {"date":2016, "value": 23}];
+
+var xScale = d3.time.scale()
+    .domain([d3.min(dataset, function(d){ return d.date; }), d3.max(dataset, function(d){ return d.date; })]).nice()
+    .range([0, width]);
+
+var yScale = d3.scale.linear()
+    .domain([0, d3.max(dataset, function(d){ return d.value; })]).nice()
+    .range([height, 0]);
+
+var xAxis = d3.svg.axis()
+    .scale(xScale)
+    .orient("bottom")
+    .innerTickSize(-height)
+    .outerTickSize(0)
+    .tickPadding(10)
+    .ticks(d3.max(dataset, function(d){ return d.date; })-d3.min(dataset, function(d){ return d.date; }))
+    .tickFormat(d3.format("d"));
+    
+var yAxis = d3.svg.axis()
+    .scale(yScale)
+    .orient("left")
+    .innerTickSize(-width)
+    .outerTickSize(0)
+    .tickPadding(10);
+
+var line = d3.svg.line()
+    .x(function(d) { return xScale(d.date); })
+    .y(function(d) { return yScale(d.value); });
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis)
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+
+  svg.append("path")
+      .data([dataset])
+      .attr("class", "line")
+      .attr("d", line);
+    
+  svg.append("text")
+      .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+      .attr("transform", "translate(-35,"+(height/2)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
+      .text("Value");
+
+  svg.append("text")
+      .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+      .attr("transform", "translate("+ (width/2) +","+(height+margin.bottom)+")")  // centre below axis
+      .text("Date");
+
+</script>
+</body>
+</html>
