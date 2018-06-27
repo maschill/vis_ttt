@@ -237,6 +237,8 @@
                 success: function (data) {
                     console.log('sucessful answer received!');
                     $("#testTable tbody").empty();
+					$( "#slider-range" ).slider( "option", "min", data.miny );
+					$( "#slider-range" ).slider( "option", "max", data.maxy );
                     $.each(data, function(i,item){
                         $("#testTable tbody").append(
                             "<tr>"
@@ -285,6 +287,7 @@
                     $("#dyn_block").html("Data delivered.");
 					$("#valcol").html($("#measure_variable").val());
                     $("#testTable tbody").empty();
+					$('#data_show_toggle')[0].scrollIntoView(true);
                     $.each(data, function(i,item){
                         $("#testTable tbody").append(
                             "<tr>"
@@ -296,7 +299,13 @@
                             + "</tr>"
                         );
                     });
+					$( "#slider-range" ).slider( "option", "min", data.miny );
+					$( "#slider-range" ).slider( "option", "max", data.maxy );
+
                 },
+				error: function() {
+					$("#dyn_block").html("Error. Pleas Try again!");
+				},
             });
         });
     });
