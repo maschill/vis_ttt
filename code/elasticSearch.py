@@ -104,7 +104,7 @@ def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
 	constants = getConstants(meta, metadata)
 	df = pd.read_csv(data, names=fieldnames, sep='\t', low_memory=False)
 	#df = timeConv(df)
-	df = markMissesAndOutliers(df)
+	#df = markMissesAndOutliers(df)
 
 	# add filename to match constants and data and mission0 for simple selection later on
 	df['filename'] = filename

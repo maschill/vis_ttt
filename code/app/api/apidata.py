@@ -93,23 +93,84 @@ def filter_data():
 		match = defaultdict(dict)
 
 		match['mission0'] = ''
+		
+		if "starttimeMin" in request.args:
+			rang["starttime1"]["gte"] = request.args.get("starttimeMin")
+		if "starttimeMax" in request.args:
+			rang["starttime1"]["lte"] = request.args.get("starttimeMax")
+			
+		rang['starttime1']['format'] = "yyyy-MM-dd"
 
-		query = {
-			"must": [
-				{"range": {"starttime1": rang["starttime1"]}},
-				{
-					"exists": {
-						"field": 'polygonmeanlon',
-					}
+		q = { 
+			"query": {
+				"bool": {
+					"must": [
+								{"range": {"starttime1": rang["starttime1"]}},
+								{
+									"exists": {
+										"field": 'polygonmeanlon',
+									}
+								},                        
+								{
+									"exists": {
+										"field": 'starttime1',
+									}
+								}, 
+								{
+									"exists": {
+										"field": 'polygonmeanlat'
+									}
+								}
+							],
+					},
+			},
+				"size": 0,
+				"aggs": {      
+					"lat_hist":{
+						"histogram": {
+							"field": "polygonmeanlat",
+								"interval": 2,
+								"min_doc_count": 1
+						},
+
+						"aggs": {
+							"lon_hist":{
+								"histogram":{
+									"field": "polygonmeanlon",
+									"interval": 2,
+									"min_doc_count": 1
+								},
+							
+						
+							"aggs": {
+								"avg_somethingsomething":{
+									"date_histogram": {
+										"field": "starttime1",
+										"interval": "year",
+										"format" : "yyyy",
+										"min_doc_count": 1
+										},
+
+									"aggs": {
+										"avg_val":{
+											"avg": {
+												"field": request.args.get("measure_variable")
+											},
+										},
+										"cnt":{
+											"terms": {
+												"field": request.args.get("measure_variable")
+											}
+										}   
+									},
+								}
+							}
+						},
+					},
 				},
-				{
-					"exists": {
-						"field": 'polygonmeanlat'
-					}
-				}
-
-			],
+			}
 		}
+
 
 		# Add geo shape filter if values entered
 		geo_filter = {
@@ -124,57 +185,35 @@ def filter_data():
 		}
 
 		if request.args.get('measure_variable') != '':
-			query['must'] += [{'exists': {'field': request.args.get('measure_variable')}}]
+			q['query']['bool']['must'] += [{'exists': {'field': request.args.get('measure_variable')}}]
 
 		if request.args.get('latitude_longitude') != "" and request.args.get('latitude_longitude') != 'None':
 			geo_filter['geo_shape']['location']['shape']['coordinated'] = [float(request.args.get('latitude_longitude').split(',')[0].strip().replace('_', '.')),
 											float(request.args.get('latitude_longitude').split(',')[1].strip().replace('_', '.'))]
-			query['filter'] = geo_filter
+			q['query']['filter'] = geo_filter
 
-		#if "mission0" in request.args:
-	#		match['mission0'] = request.args.get("mission0")
-
-		if "starttimeMin" in request.args:
-			rang["starttime1"]["gte"] = request.args.get("starttimeMin")
-		if "starttimeMax" in request.args:
-			rang["starttime1"]["lte"] = request.args.get("starttimeMax")
-			
-		rang['stoptime1']['format'] = "yyyy-MM-dd"
-		rang['starttime1']['format'] = "yyyy-MM-dd"
 
 		if match['mission0'] != '':
-			query["must"].append({"match": {"mission0":request.args.get("mission0")}}) 
+			q['query']['bool']["must"].append({"match": {"mission0":request.args.get("mission0")}}) 
 
-		q = {"bool":query}
 		print('QUERY', q)
+		resp = es.search(index='dlrmetadata', doc_type='doc', body=q, size=1)
 
-		resp = es.search(index='dlrmetadata', doc_type='doc', body={"query":q}, size=100)
-
-		data = [d['_source'] for d in resp['hits']['hits']]
-		data = pd.DataFrame(data)
-		data['starttime1']=pd.to_datetime(data['starttime1'])
-		
-		data['month_year'] = data.starttime1.dt.to_period('M')
-		data['month'] = data.starttime1.dt.month
-		data['scene_lat'] = data['polygonmeanlat']
-		data['scene_lon'] = data['polygonmeanlon']
-		data['val'] = data[request.args.get("measure_variable")]
-		data["rlat"] = data['scene_lat'].apply(lambda x: round(x))
-		data["rlon"] = data['scene_lon'].apply(lambda x: round(x))
-		# print(data.groupby(['year', 'rlat', 'rlon'])['val'].mean())
-		data = data[data["val"] != 0]
-		data.dropna(axis=0)
-		data['year'] = pd.to_numeric(data.starttime1.dt.year)
+		values = []
+		for lat_buck in resp["aggregations"]["lat_hist"]['buckets']:
+			for lon_buck in lat_buck["lon_hist"]["buckets"]:
+				for avg_buck in lon_buck["avg_somethingsomething"]["buckets"]:
+					values.append([lat_buck['key'], lon_buck['key'], avg_buck['key_as_string'], avg_buck["avg_val"]["value"]])
+					
+		data = pd.DataFrame(values, index=None, columns = ['scene_lat', 'scene_lon', 'year', 'val'])
+		data = data[data.val > 0]
 		mm = {}
-		data.to_json("data.json")
 		data.index = data.index.map(str)
-		tdict = data[['scene_lat', 'scene_lon', 'year', "val", "mission0"]].to_dict(orient='index')
-
+		tdict = data[['scene_lat', 'scene_lon', 'year', "val"]].to_dict(orient='index')
+		data['year'] = pd.to_numeric(data['year'])
 		mm["miny"] = int(data['year'].min())
 		mm["maxy"] = int(data['year'].max())
-		# with open('data.json', 'w') as file:
-		# 	json.dump(data, file)
-		#print('QUERY RESPONSE: ', resp)
+
 		return jsonify(data=tdict, minmax=mm)
 	except Exception as e:
 		print(e)
