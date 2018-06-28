@@ -39,11 +39,7 @@
 </div>
 
 <div class="col-md-12 bg-light border border-dark p-5">
-<<<<<<< HEAD
 	<div class="m-5 py-5" id="map" style="min-width: 400px; min-height: 400px"></div>
-=======
-	<div class="p-5" id="map" style="width:1000; height:800"></div>
->>>>>>> 2f09e7d886cdc6d15e7dceee3cf8a3af5cf645d0
 
 	<!-- <div class="py-5 m-5 col-md-12 float-sm-right"> -->
 		<div class="col-md-6 col-sm-12 float-sm-right">
@@ -304,13 +300,9 @@ var tip = d3.tip()
 
 	svg.call(tip);
 
-<<<<<<< HEAD
 	var width = 650,
 		height = 650;
-=======
-	var width = 800,
-		height = 600;
->>>>>>> 2f09e7d886cdc6d15e7dceee3cf8a3af5cf645d0
+
 	var color= d3.scale.ordinal()
 		.domain([1,2,3,4,5,6,7,8,9])
 		.range(colorbrewer.Oranges[9]);
@@ -353,13 +345,8 @@ function d3worldmap(data){
 	ajaxCallBack(data);
 	
 	svg = d3.select("#map").append("svg")
-<<<<<<< HEAD
 		.attr("viewBox", "0 0 "+width+" "+height)
 		//.attr("preserveAspectRatio", "xMidYMid meet");
-=======
-		.attr("viewBox", "0 0 600 600")
-		.attr("preserveAspectRatio", "xMidYMid meet");
->>>>>>> 2f09e7d886cdc6d15e7dceee3cf8a3af5cf645d0
 
 	//append legendS
 	var legend = svg.append("g")
