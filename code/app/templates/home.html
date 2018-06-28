@@ -39,7 +39,7 @@
 </div>
 
 <div class="col-md-12 bg-light border border-dark p-5">
-	<div class="m-5 py-5" id="map" style="min-width: 400px; min-height: 400px"></div>
+	<div class="m-5 py-5" id="map" style="min-width: 400px; min-height: 100px"></div>
 
 	<!-- <div class="py-5 m-5 col-md-12 float-sm-right"> -->
 		<div class="col-md-6 col-sm-12 float-sm-right">
@@ -312,7 +312,7 @@ var tip = d3.tip()
 		.projection(projection);
 
 	// Define color map
-	var mycolors = ["red", "black", "green"]
+	var mycolors = ["black", "red", "yellow", "green"]
 	var mycolorsRange = d3.range(0,1,(1/(mycolors.length-1)));
 		mycolorsRange.push(1)
 
@@ -398,13 +398,14 @@ function d3worldmap(data){
 			//.on('mouseover', tip.show)
 				//.on('mouseout', tip.hide)
 
+	year = data.minmax.miny
+	var ply = placesByYear.find(d => d.key == year).values;
 	var pins = 	svg.selectAll("circle").data(ply);
 
-	pins.exit().remove();
+	//pins.exit().remove();
 
 	pins.enter()
 		.append("circle")
-		// .append("class", ".pin")
 		.attr("r", 5)
 		.attr("transform", function(d) {
 			return "translate(" + projection([
@@ -413,9 +414,7 @@ function d3worldmap(data){
 						]) + ")";
 						})
 		.style('fill', function(d){return colorScale(colorInterpolate(d.val))})
-		//.on('mouseover', tip.show)
-		//.on('mouseout', tip.hide);
-
+		.style("opacity", .3)
 		.on("mouseover", function(d) {
 		  tip.show(d)
 		  d3.select(this).attr("r", 10)
@@ -425,8 +424,7 @@ function d3worldmap(data){
 		  d3.select(this).attr("r", 5)
 		});
 
-	pins.transition().duration(1);
-	//var projection = d3.geo.mercator().scale(1200).translate([-600,700]);
+	//pins.transition().duration(1);
 	var path= d3.geo.path().projection(projection);
 
 	var areas= group.append("path")
@@ -438,13 +436,13 @@ function d3worldmap(data){
 }
 
 function updatescatter(year) {
-	var pins = svg.selectAll("circle").data(ply);
 
+	svg.selectAll("circle").remove();
 	ply = placesByYear.find(d => d.key == year).values;
+	var pins = svg.selectAll("circle").data(ply);
 
 	console.log(pins.enter());
 	console.log(pins.exit());
-	pins.exit().remove();
 
 	pins.enter()
 	.append("circle")//, ".pin")
@@ -456,10 +454,11 @@ function updatescatter(year) {
 					]) + ")";
 					})
 	.style('fill', function(d){return colorScale(colorInterpolate(d.val))})
+	.style("opacity", .3)
 	.on('mouseover', tip.show)
 	.on('mouseout', tip.hide); 
 
-	pins.transition().duration(10);
+	pins.transition().duration(500);
 
 	console.log('jaa', function(d) {console.log("event = ", d)});
 };
