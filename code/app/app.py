@@ -53,17 +53,16 @@ def get_measured_variables():
 			     "variance_field": {
 				     "extended_stats": {
 					     "field": col
-				     }
-			     }
-		     }
-		     }
+				    }
+			    }
+		    }
+		}
 		resp = es.search(index='dlrmetadata', doc_type='doc', body=q, size=100,
 		                 filter_path=['aggregations.variance_field'])
 		if not 'lon' in col and not 'lat' in col and not 'coo' in col:# and col != 'heightofambiguit0' and col != 'tilt_angle0' and col != 'meandifferenceto1':
 			resp['aggregations']['variance_field']['fname'] = col
 			if resp['aggregations']['variance_field']['count'] > 0:
 				variable_description += [resp['aggregations']['variance_field']]
-	#print(variable_description)
 	return variable_description
 
 @app.route('/csv/')
