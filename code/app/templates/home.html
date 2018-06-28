@@ -4,7 +4,7 @@
 
 <h1>Home - Analytics - Visualization - Also: Best UX by far!</h1>
 
-<div class="border border-dark p-5 my-5 col-md-12 bg-light">
+<div class=" p-5 my-5 col-md-12 bg-light">
 	<button type="button" class="btn border border-dark btn-default float-sm-right" id="data_request_btn">Request Data</button>
 
 	<h3 class="float-sm-left"> Status:  </h3> <h3 class="float-sm-left pl-5"> <div  id="dyn_block">waiting for request</div></h3>
@@ -31,15 +31,15 @@
 </div>
 
 
-<div class="border border-dark p-5 my-5 col-md-12 bg-light">
+<div class="p-5 my-5 col-md-12 bg-light">
 	<h3 class="text-center">Measured Variables</h3>
 	<div id="chart" style="overflow-y:scroll; overflow-x:hidden; height:300px;"></div>
 	<div id="chart2" style="overflow:hidden;"></div>
 
 </div>
 
-<div class="col-md-12 bg-light border border-dark p-5">
-	<div class="m-5 py-5" id="map" style="min-width: 400px; min-height: 100px"></div>
+<div class="col-md-12 bg-light my-5 p-5">
+	<div class="pt-5" id="map" style="min-width: 400px; min-height: 400px"></div>
 
 	<!-- <div class="py-5 m-5 col-md-12 float-sm-right"> -->
 		<div class="col-md-6 col-sm-12 float-sm-right">
@@ -49,10 +49,15 @@
 	<!-- </div>	 -->
 
 
-	<div class="pb-1"></div><div class="col-sm-1 float-sm-left pb-2"> Slider:</div> 
-	<div class="px-3 col-sm-1 float-sm-left pb-2" id="slider_val">50</div>
-	<div id="slider-range" class="col-md-4 float-sm-right px-3"></div>
+	<div class="pb-1">
+		<div class="col-sm-1 float-sm-left pb-2"> Slider:</div> 
+		<div class="px-3 col-sm-1 float-sm-left pb-2" id="slider_val">2010</div>
+		<div id="slider-range" class="col-md-4 float-sm-right px-3"></div>
+	</div>
+</div>
 
+<div>
+	<div id="lineplot" class="m-5, p-5"></div>
 </div>
 
 
@@ -271,6 +276,7 @@ var placesByYear = null;
 var places = null;
 var ply = null;
 
+
 function ajaxCallBack(data){
 	console.log(data)
 	places = Object.values(data.data);
@@ -279,7 +285,7 @@ function ajaxCallBack(data){
 	.entries(places);
 	//updatescatter(data.minmax.miny)
 	ply = placesByYear.find(d => d.key == data.minmax.miny).values;
-
+	lineplot();
 }
 
 function grp(data){
@@ -351,37 +357,37 @@ function d3worldmap(data){
 	//append legendS
 	var legend = svg.append("g")
 		.attr("class", "legendWrapper")
-		.attr("transform", "translate("+(width) + "," + (height))
+		.attr("transform", "translate("+width + "," + height+")");
 
 	var marginscaletop = 40
-	legend.append("rect")
-		.attr("x", 50)
+	svg.append("rect")
+		.attr("x", 0)
 		.attr("y", marginscaletop)
-		.attr("width", 10)
+		.attr("width", 6)
 		.attr("height", height-2*marginscaletop)
 		.style("fill", "url(#linear-gradient)")
 
 	// Set axis
-	var yScale = d3.scale.linear()
+	var yScaleMap = d3.scale.linear()
 		.range([marginscaletop, height-marginscaletop])
 		//.domain([0,100])
 		.nice()
 
-	var yAxis = d3.svg.axis()
+	var yAxisMap = d3.svg.axis()
 		.ticks(5)
 		.tickFormat(d3.format(""))
-		.scale(yScale)
+		.scale(yScaleMap)
 		.orient("right")
 
 	svg.append("g")
 		.attr("class", "axis")
 		.attr("transform","translate("+ 0 +","+ 0 +")")
-		.call(yAxis);
+		.call(yAxisMap);
 
 	places.forEach(function(i,d){
 		colorInterpolate.domain([d3.min(places, function(d) { return d.val; }),
 			d3.max(places, function(d) { return d.val; })]);
-		yScale.domain([d3.min(places, function(d) { return d.val; }),
+		yScaleMap.domain([d3.min(places, function(d) { return d.val; }),
 			d3.max(places, function(d) { return d.val; })]);
 	});
 
@@ -441,9 +447,6 @@ function updatescatter(year) {
 	ply = placesByYear.find(d => d.key == year).values;
 	var pins = svg.selectAll("circle").data(ply);
 
-	console.log(pins.enter());
-	console.log(pins.exit());
-
 	pins.enter()
 	.append("circle")//, ".pin")
 	.attr("r", 5)
@@ -457,19 +460,106 @@ function updatescatter(year) {
 	.style("opacity", .3)
 	.on('mouseover', tip.show)
 	.on('mouseout', tip.hide); 
-
-	pins.transition().duration(500);
-
-	console.log('jaa', function(d) {console.log("event = ", d)});
 };
+
+
+function lineplot() {
+	$("#lineplot").html("");
+
+    var dataset = [];
+	placesByYear.forEach(function(entry) {
+		var singleObj = {}
+		singleObj['key'] = parseInt(entry.key);
+		var sum = 0,
+			cnt = 0;
+		entry.values.forEach(function(d){
+			sum += d.val;
+			cnt += 1;
+		});
+		singleObj['value'] = sum/cnt;
+		dataset.push(singleObj);
+	});
+
+	dataset.sort(function(x, y){
+   		return d3.ascending(x.key, y.key);
+	})
+	console.log(dataset);
+
+    var margin_lp = {top: 20, right: 100, bottom: 40, left: 100},
+        width_lp = 960 - margin_lp.left - margin_lp.right,
+        height_lp = 500 - margin_lp.top - margin_lp.bottom;
+		
+	var svg_lineplot = d3.select("#lineplot").append("svg")
+        .attr("width", width_lp + margin_lp.left + margin_lp.right)
+        .attr("height", height_lp + margin_lp.top + margin_lp.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin_lp.left + "," + margin_lp.top + ")");
+
+    var xScale_lp = d3.time.scale()
+        .domain([d3.min(dataset, function(d){ return d.key; }), d3.max(dataset, function(d){ return d.key; })]).nice()
+        .range([0, width_lp]);
+
+    var yScale_lp = d3.scale.linear()
+        .domain([0, d3.max(dataset, function(d){ return d.value; })]).nice()
+        .range([height_lp, 0]);
+
+    var xAxis_lp = d3.svg.axis()
+        .scale(xScale_lp)
+        .orient("bottom")
+        .innerTickSize(-height_lp)
+        .outerTickSize(0)
+        .tickPadding(10)
+        .ticks(d3.max(dataset, function(d){ return d.key; })-d3.min(dataset, function(d){ return d.key; }))
+        .tickFormat(d3.format("d"));
+        
+    var yAxis_lp = d3.svg.axis()
+        .scale(yScale_lp)
+        .orient("left")
+        .innerTickSize(-width_lp)
+        .outerTickSize(0)
+        .tickPadding(10);
+
+    var line_lp = d3.svg.line()
+        .x(function(d) { return xScale_lp(d.key); })
+        .y(function(d) { return yScale_lp(d.value); });
+
+  
+    svg_lineplot.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height_lp + ")")
+        .call(xAxis_lp)
+
+    svg_lineplot.append("g")
+        .attr("class", "y axis")
+        .call(yAxis_lp)
+
+    svg_lineplot.append("path")
+        .data([dataset])
+        .attr("class", "line_lp")
+        .attr("d", line_lp);
+        
+    svg_lineplot.append("text")
+        .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+        .attr("transform", "translate(-35,"+(height_lp/2)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
+        .text("Value");
+
+    svg_lineplot.append("text")
+        .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+        .attr("transform", "translate("+ (width_lp/2) +","+(height_lp+margin_lp.bottom)+")")  // centre below axis
+        .text("Date");
+
+	console.log("hi");
+}
 
 $(function() {
 
 $( "#slider-range" ).slider({
+	value: 2010,
 	min: 0,
 	max: 1000,
 	slide: function( event, ui){
 		$("#slider_val").html(ui.value);
+		console.log(ui);
 		updatescatter(ui.value);
 
 	}
@@ -526,6 +616,8 @@ $("#data_request_btn").click(function(){
 
 
 
+
+
 var dateFormat = "yyyy-mm-dd",
 	from = $( "#starttimeMin" )
         .datepicker({
@@ -560,5 +652,29 @@ function getDate( element ) {
 });
 
 </script>
+
+<style>
+
+		.axis path,
+		.axis line{
+		  fill: none;
+		  stroke: black;
+		}
+	  
+		.line_lp{
+		  fill: none;
+		  stroke: blue;
+		  stroke-width: 2px;
+		}
+	  
+		.tick text{
+		  font-size: 12px;
+		}
+	  
+		.tick line{
+		  opacity: 0.2;
+		}
+	  
+</style>
 
 {% endblock %}
