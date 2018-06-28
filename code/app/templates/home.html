@@ -39,7 +39,7 @@
 </div>
 
 <div class="col-md-12 bg-light border border-dark p-5">
-	<div class="m-5 py-5" id="map" style="min-width:400px;width :50%;height : 400px"></div>
+	<div class="m-5 py-5" id="map" style="min-width: 400px; min-height: 400px"></div>
 
 	<!-- <div class="py-5 m-5 col-md-12 float-sm-right"> -->
 		<div class="col-md-6 col-sm-12 float-sm-right">
@@ -296,6 +296,7 @@ var places = null;
 var ply = null;
 
 function ajaxCallBack(data){
+	console.log(data)
 	places = Object.values(data.data);
 	placesByYear = d3.nest()
 	.key(function(d){ return d.year;})
@@ -323,18 +324,18 @@ var tip = d3.tip()
 
 	svg.call(tip);
 
-	var width = 2800,
-		height = 1200;
+	var width = 650,
+		height = 650;
 	var color= d3.scale.ordinal()
 		.domain([1,2,3,4,5,6,7,8,9])
 		.range(colorbrewer.Oranges[9]);
 
-	var projection = d3.geo.mercator().scale(50).translate([width/4,height/4]);
+	var projection = d3.geo.mercator().scale(90).translate([width/2+width/12,height/2]);
 	var path = d3.geo.path()
 		.projection(projection);
 
 	// Define color map
-	var mycolors = ["red", "black", "green", "blue"]
+	var mycolors = ["red", "black", "green"]
 	var mycolorsRange = d3.range(0,1,(1/(mycolors.length-1)));
 		mycolorsRange.push(1)
 
@@ -367,25 +368,27 @@ function d3worldmap(data){
 	ajaxCallBack(data);
 	
 	svg = d3.select("#map").append("svg")
-		.attr("viewBox", "0 0 800 600")
-		.attr("preserveAspectRatio", "xMidYMid meet");
+		.attr("viewBox", "0 0 "+width+" "+height)
+		//.attr("preserveAspectRatio", "xMidYMid meet");
 
 	//append legendS
 	var legend = svg.append("g")
 		.attr("class", "legendWrapper")
-		.attr("transfform", "translate("+(width) + "," + (height))
+		.attr("transform", "translate("+(width) + "," + (height))
 
+	var marginscaletop = 40
 	legend.append("rect")
 		.attr("x", 50)
-		.attr("y", 0)
-		.attr("width", 40)
-		.attr("height", height)
+		.attr("y", marginscaletop)
+		.attr("width", 10)
+		.attr("height", height-2*marginscaletop)
 		.style("fill", "url(#linear-gradient)")
 
 	// Set axis
 	var yScale = d3.scale.linear()
-		.range([0, height])
+		.range([marginscaletop, height-marginscaletop])
 		//.domain([0,100])
+		.nice()
 
 	var yAxis = d3.svg.axis()
 		.ticks(5)
@@ -433,11 +436,20 @@ function d3worldmap(data){
 						]) + ")";
 						})
 		.style('fill', function(d){return colorScale(colorInterpolate(d.val))})
-		.on('mouseover', tip.show)
-		.on('mouseout', tip.hide);
+		//.on('mouseover', tip.show)
+		//.on('mouseout', tip.hide);
+
+		.on("mouseover", function(d) {
+		  tip.show(d)
+		  d3.select(this).attr("r", 10)
+		})
+		.on("mouseout", function(d) {
+		  tip.hide(d)
+		  d3.select(this).attr("r", 5)
+		});
 
 	pins.transition().duration(1);
-	//var projection = d3.geo.mercator().scale(900).translate([-600,700]);
+	//var projection = d3.geo.mercator().scale(1200).translate([-600,700]);
 	var path= d3.geo.path().projection(projection);
 
 	var areas= group.append("path")

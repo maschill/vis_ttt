@@ -148,7 +148,7 @@ def filter_data():
 		q = {"bool":query}
 		print('QUERY', q)
 
-		resp = es.search(index='dlrmetadata', doc_type='doc', body={"query":q}, size=10000)
+		resp = es.search(index='dlrmetadata', doc_type='doc', body={"query":q}, size=100)
 
 		data = [d['_source'] for d in resp['hits']['hits']]
 		data = pd.DataFrame(data)
