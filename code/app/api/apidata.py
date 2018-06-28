@@ -170,30 +170,33 @@ def filter_data():
 				},
 			}
 		}
+
+		geo_filter = None
+		
 		if request.args.get('latitude_longitude') != "" and request.args.get('latitude_longitude') != 'None':
 			lat,lon = [float(request.args.get('latitude_longitude').split(',')[0].strip().replace('_', '.')),
 											float(request.args.get('latitude_longitude').split(',')[1].strip().replace('_', '.'))]
 
 
 		# Add geo shape filter if values entered
-		geo_filter =  [
-                    {
-                "range":{
-                    "polygonmeanlat":{
-                    "gte": lat-20,
-                    "lte": lat+20,}
-                }
-                
-            },
-            {
-                "range":{
-                    "polygonmeanlon":{
-                    "gte": lon-20,
-                    "lte": lon+20,}
-                }
-                
-            }
-            ]
+			geo_filter =  [
+						{
+					"range":{
+						"polygonmeanlat":{
+						"gte": lat-20,
+						"lte": lat+20,}
+					}
+					
+				},
+				{
+					"range":{
+						"polygonmeanlon":{
+						"gte": lon-20,
+						"lte": lon+20,}
+					}
+					
+				}
+				]
 
 		if request.args.get('measure_variable') != '':
 			q['query']['bool']['must'] += [{'exists': {'field': request.args.get('measure_variable')}}]
