@@ -146,8 +146,8 @@ def filter_data():
 								"avg_somethingsomething":{
 									"date_histogram": {
 										"field": "starttime1",
-										"interval": "year",
-										"format" : "yyyy",
+										"interval": "month",
+										"format" : "yyyy-MM",
 										"min_doc_count": 1
 										},
 
@@ -210,9 +210,11 @@ def filter_data():
 		mm = {}
 		data.index = data.index.map(str)
 		tdict = data[['scene_lat', 'scene_lon', 'year', "val"]].to_dict(orient='index')
-		data['year'] = pd.to_numeric(data['year'])
-		mm["miny"] = int(data['year'].min())
-		mm["maxy"] = int(data['year'].max())
+		data['year_'] = [(pd.to_numeric(x.replace('-', '.'))) for x in data['year']]
+		yearmonthmin = data['year_'].min()
+		mm["miny"] = int(yearmonthmin)
+		mm["maxy"] = int(data['year_'].max())
+		mm["minmonth"] = '{}'.format(yearmonthmin)[-2:]
 
 		return jsonify(data=tdict, minmax=mm)
 	except Exception as e:

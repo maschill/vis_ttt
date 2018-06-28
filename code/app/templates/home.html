@@ -50,8 +50,11 @@
 
 
 	<div class="pb-1"></div><div class="col-sm-1 float-sm-left pb-2"> Slider:</div> 
-	<div class="px-3 col-sm-1 float-sm-left pb-2" id="slider_val">50</div>
+	<div class="px-3 col-sm-1 float-sm-left pb-2" id="slider_val"></div>
 	<div id="slider-range" class="col-md-4 float-sm-right px-3"></div>
+	<div class="px-3 col-sm-1 float-sm-left pb-2" id="slider_valM"></div>
+	<div id="slider-rangeM" class="col-md-4 float-sm-right px-3"></div>
+
 
 </div>
 
@@ -271,6 +274,12 @@ var placesByYear = null;
 var places = null;
 var ply = null;
 
+function pad(n, width, z) {
+  z = z || '0';
+  n = n + '';
+  return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+}
+
 function ajaxCallBack(data){
 	console.log(data)
 	places = Object.values(data.data);
@@ -278,7 +287,9 @@ function ajaxCallBack(data){
 	.key(function(d){ return d.year;})
 	.entries(places);
 	//updatescatter(data.minmax.miny)
-	ply = placesByYear.find(d => d.key == data.minmax.miny).values;
+	console.log(data.minmax.miny+data.minmax.minmonth)
+	console.log(placesByYear)
+	ply = placesByYear.find(d => d.key == data.minmax.miny+"-"+data.minmax.minmonth).values;
 
 }
 
@@ -289,15 +300,15 @@ function grp(data){
 	console.log(placesByYear);
 }
 
-var tip = d3.tip()
+	var tip = d3.tip()
 		.attr('class', 'd3-tip')
-		.offset([250, 0])
+		.offset([50, 0])
 		.style("left", "300px")
 		.style("top", "400px")
 		.html(function(d) {
-			return d.val;
+			return ("Measure: " + d.val + "<br\/>"+"<br\/>" + "Latitude: " + d.scene_lat
+			+ "<br\/>"+"<br\/>" + "Longitude: " + d.scene_lon);
 		})
-
 	svg.call(tip);
 
 	var width = 650,
@@ -367,6 +378,13 @@ function d3worldmap(data){
 		//.domain([0,100])
 		.nice()
 
+	places.forEach(function(i,d){
+		colorInterpolate.domain([d3.min(places, function(d) { return d.val; }),
+			d3.max(places, function(d) { return d.val; })]);
+		yScale.domain([d3.min(places, function(d) { return d.val; }),
+			d3.max(places, function(d) { return d.val; })]);
+	});
+
 	var yAxis = d3.svg.axis()
 		.ticks(5)
 		.tickFormat(d3.format(""))
@@ -378,12 +396,6 @@ function d3worldmap(data){
 		.attr("transform","translate("+ 0 +","+ 0 +")")
 		.call(yAxis);
 
-	places.forEach(function(i,d){
-		colorInterpolate.domain([d3.min(places, function(d) { return d.val; }),
-			d3.max(places, function(d) { return d.val; })]);
-		yScale.domain([d3.min(places, function(d) { return d.val; }),
-			d3.max(places, function(d) { return d.val; })]);
-	});
 
 	d3.json("https://s3-us-west-2.amazonaws.com/vida-public/geo/world-topo-min.json", function(error, swiss) {
 	if (error) throw error;
@@ -398,7 +410,7 @@ function d3worldmap(data){
 			//.on('mouseover', tip.show)
 				//.on('mouseout', tip.hide)
 
-	year = data.minmax.miny
+	year = data.minmax.miny+"-"+data.minmax.minmonth
 	var ply = placesByYear.find(d => d.key == year).values;
 	var pins = 	svg.selectAll("circle").data(ply);
 
@@ -406,6 +418,7 @@ function d3worldmap(data){
 
 	pins.enter()
 		.append("circle")
+		.attr("class", "scatter")
 		.attr("r", 5)
 		.attr("transform", function(d) {
 			return "translate(" + projection([
@@ -414,7 +427,6 @@ function d3worldmap(data){
 						]) + ")";
 						})
 		.style('fill', function(d){return colorScale(colorInterpolate(d.val))})
-		.style("opacity", .3)
 		.on("mouseover", function(d) {
 		  tip.show(d)
 		  d3.select(this).attr("r", 10)
@@ -435,10 +447,12 @@ function d3worldmap(data){
 	});
 }
 
-function updatescatter(year) {
+function updatescatter(year, month) {
+	console.log(year, month)
 
 	svg.selectAll("circle").remove();
-	ply = placesByYear.find(d => d.key == year).values;
+	console.log(year + "-" + pad(month, 2))
+	ply = placesByYear.find(d => d.key == year + "-" + pad(month, 2)).values;
 	var pins = svg.selectAll("circle").data(ply);
 
 	console.log(pins.enter());
@@ -446,6 +460,7 @@ function updatescatter(year) {
 
 	pins.enter()
 	.append("circle")//, ".pin")
+	.attr("class", "scatter")
 	.attr("r", 5)
 	.attr("transform", function(d) {
 		return "translate(" + projection([
@@ -454,9 +469,14 @@ function updatescatter(year) {
 					]) + ")";
 					})
 	.style('fill', function(d){return colorScale(colorInterpolate(d.val))})
-	.style("opacity", .3)
-	.on('mouseover', tip.show)
-	.on('mouseout', tip.hide); 
+	.on("mouseover", function(d) {
+	  tip.show(d)
+	  d3.select(this).attr("r", 10)
+	})
+	.on("mouseout", function(d) {
+	  tip.hide(d)
+	  d3.select(this).attr("r", 5)
+	})
 
 	pins.transition().duration(500);
 
@@ -470,7 +490,17 @@ $( "#slider-range" ).slider({
 	max: 1000,
 	slide: function( event, ui){
 		$("#slider_val").html(ui.value);
-		updatescatter(ui.value);
+		updatescatter(ui.value, $("#slider-rangeM").slider("option", "value"));
+
+	}
+});
+
+$( "#slider-rangeM" ).slider({
+	min: 1,
+	max: 12,
+	slide: function( event, ui){
+		$("#slider_valM").html(ui.value);
+		updatescatter($("#slider-range").slider("option", "value"), ui.value);
 
 	}
 });
@@ -516,6 +546,10 @@ $("#data_request_btn").click(function(){
 			$( "#slider-range" ).slider( "option", "min", data.minmax.miny );			
 			$( "#slider-range" ).slider( "option", "value", data.minmax.miny );
 			$( "#slider-range" ).slider( "option", "max", data.minmax.maxy );
+
+			$( "#slider-rangeM" ).slider( "option", "min", 1 );
+			$( "#slider-rangeM" ).slider( "option", "value", 1 );
+			$( "#slider-rangeM" ).slider( "option", "max", 12 );
 			d3worldmap(data);
 		},
 		error: function() {
