@@ -293,6 +293,7 @@
 <script type="text/javascript">
 var placesByYear = null;
 var places = null;
+var ply = null;
 
 function ajaxCallBack(data){
 	places = Object.values(data.data);
@@ -300,6 +301,8 @@ function ajaxCallBack(data){
 	.key(function(d){ return d.year;})
 	.entries(places);
 	//updatescatter(data.minmax.miny)
+	ply = placesByYear.find(d => d.key == data.minmax.miny).values;
+
 }
 
 function grp(data){
@@ -355,17 +358,17 @@ var tip = d3.tip()
 			.enter().append("stop")
 			.attr("offset",  function(d,i) {return i/(mycolors.length-1);})
 			.attr("stop-color", function(d){return d;})
+	
+	var svg;
 
 
 function d3worldmap(data){
 
 	ajaxCallBack(data);
-	console.log(places)
-	var svg = d3.select("#map").append("svg")
+	
+	svg = d3.select("#map").append("svg")
 		.attr("viewBox", "0 0 800 600")
 		.attr("preserveAspectRatio", "xMidYMid meet");
-	var data;
-
 
 	//append legendS
 	var legend = svg.append("g")
@@ -415,9 +418,13 @@ function d3worldmap(data){
 			//.on('mouseover', tip.show)
 				//.on('mouseout', tip.hide)
 
-	svg.selectAll(".pin")
-		.data(places).enter()
-		.append("circle", ".pin")
+	var pins = 	svg.selectAll("circle").data(ply);
+
+	pins.exit().remove();
+
+	pins.enter()
+		.append("circle")
+		// .append("class", ".pin")
 		.attr("r", 5)
 		.attr("transform", function(d) {
 			return "translate(" + projection([
@@ -427,8 +434,9 @@ function d3worldmap(data){
 						})
 		.style('fill', function(d){return colorScale(colorInterpolate(d.val))})
 		.on('mouseover', tip.show)
-		.on('mouseout', tip.hide)
+		.on('mouseout', tip.hide);
 
+	pins.transition().duration(1);
 	//var projection = d3.geo.mercator().scale(900).translate([-600,700]);
 	var path= d3.geo.path().projection(projection);
 
@@ -441,11 +449,19 @@ function d3worldmap(data){
 }
 
 function updatescatter(year) {
-	var ply = Object.values(placesByYear.find(d => d.key == year))
-	//console.log(ply)
-	svg.selectAll(".pin")
-	.data(ply).enter()
-	.append("circle", ".pin")
+	// d3.select("svg").remove()
+
+
+	var pins = svg.selectAll("circle").data(ply);
+
+	ply = placesByYear.find(d => d.key == year).values;
+
+	console.log(pins.enter());
+	console.log(pins.exit());
+	pins.exit().remove();
+	
+	pins.enter()
+	.append("circle")//, ".pin")
 	.attr("r", 5)
 	.attr("transform", function(d) {
 		return "translate(" + projection([
@@ -455,7 +471,10 @@ function updatescatter(year) {
 					})
 	.style('fill', function(d){return colorScale(colorInterpolate(d.val))})
 	.on('mouseover', tip.show)
-	.on('mouseout', tip.hide)
+	.on('mouseout', tip.hide); 
+
+	pins.transition().duration(10);
+
 	console.log('jaa', function(d) {console.log("event = ", d)});
 };
 
