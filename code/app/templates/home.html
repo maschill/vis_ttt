@@ -39,7 +39,7 @@
 </div>
 
 <div class="col-md-12 bg-light border border-dark p-5">
-	<div class="m-5 py-5" id="map" style="min-width:400px;width :50%;height : 400px"></div>
+	<div class="p-5" id="map" style="width:1000; height:800"></div>
 
 	<!-- <div class="py-5 m-5 col-md-12 float-sm-right"> -->
 		<div class="col-md-6 col-sm-12 float-sm-right">
@@ -59,7 +59,6 @@
 <table id="testTable"  class="table table-striped my-5">
 	<thead>
 		<tr class="thead-dark">
-			<th>Mission</th>
 			<th>Year</th>
 			<th>Lat</th>
 			<th>Lon</th>
@@ -68,7 +67,6 @@
 	</thead>
 	<tbody>
 		<tr>
-			<td></td>
 			<td></td>
 			<td></td>
 			<td></td>
@@ -262,28 +260,6 @@
 		  .attr("class", "x axis")
 		  .attr("transform", "translate(0," + height + ")")
 		  .call(xLAxis) //.ticks(10,"%"))
-		// svg.append("text")
-		//     .attr("class", "title")
-		//     .attr("x", (width / 2))
-		//     .attr("y", 0 - (margin.top / 2))
-		//     .attr("text-anchor", "middle")
-		//     .style("font-size", "16px")
-		// 	.style("font-weight", "bold")
-		//     .text("Measurements in DLR Data");
-
-		// svg.append("text")
-		//     .attr("class", "x-label")
-		//     .attr("text-anchor", "middle")
-		//     .attr("x", width/2+(width/2-gap)/2)
-		//     .attr("y", height+40)
-		//     .text("Coefficient of variation");
-
-		// svg.append("text")
-		//     .attr("class", "x-label")
-		//     .attr("text-anchor", "middle")
-		//     .attr("x", (width/2-gap)/2)
-		//     .attr("y", height+40)
-		//     .text("Relative requency of variable");
 
 		svg.select("xaxis")
 			.style("font-size","15px");
@@ -323,8 +299,8 @@ var tip = d3.tip()
 
 	svg.call(tip);
 
-	var width = 2800,
-		height = 1200;
+	var width = 800,
+		height = 600;
 	var color= d3.scale.ordinal()
 		.domain([1,2,3,4,5,6,7,8,9])
 		.range(colorbrewer.Oranges[9]);
@@ -367,7 +343,7 @@ function d3worldmap(data){
 	ajaxCallBack(data);
 	
 	svg = d3.select("#map").append("svg")
-		.attr("viewBox", "0 0 800 600")
+		.attr("viewBox", "0 0 600 600")
 		.attr("preserveAspectRatio", "xMidYMid meet");
 
 	//append legendS
@@ -449,9 +425,6 @@ function d3worldmap(data){
 }
 
 function updatescatter(year) {
-	// d3.select("svg").remove()
-
-
 	var pins = svg.selectAll("circle").data(ply);
 
 	ply = placesByYear.find(d => d.key == year).values;
@@ -459,7 +432,7 @@ function updatescatter(year) {
 	console.log(pins.enter());
 	console.log(pins.exit());
 	pins.exit().remove();
-	
+
 	pins.enter()
 	.append("circle")//, ".pin")
 	.attr("r", 5)
@@ -521,7 +494,6 @@ $("#data_request_btn").click(function(){
 			$.each(data.data, function(i,item){
 				$("#testTable tbody").append(
 					"<tr>"
-						+ "<td>" + item.mission0 + "</td>"
 						+ "<td>" + item.year + "</td>"
 						+ "<td>" + item.scene_lat + "</td>"
 						+ "<td>" + item.scene_lon + "</td>"
@@ -533,8 +505,6 @@ $("#data_request_btn").click(function(){
 			$( "#slider-range" ).slider( "option", "value", data.minmax.miny );
 			$( "#slider-range" ).slider( "option", "max", data.minmax.maxy );
 			d3worldmap(data);
-			//ajaxCallBack(data.data);
-			//update_plot(data.minmax.miny);
 		},
 		error: function() {
 			$("#dyn_block").html("Error. Pleas Try again!");
