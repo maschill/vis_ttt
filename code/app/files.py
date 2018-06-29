@@ -22,13 +22,14 @@ def filesfromEL(es):
 
 	if es.indices.exists(indexnames['DATAOVERVIEW']):
 		res = es.search(index=indexnames['DATAOVERVIEW'], size=200,
-		                body={"query": {"match_all": {}}, "_source": ["filename","size","updateDate", "success", "failed"]})
+		                body={"query": {"match_all": {}}, "_source": ["filename","size","updateDate", "success", "failed", "failedids"]})
 		filenames = [x['_source']['filename'] for x in res['hits']['hits']]
 		size = [x['_source']['size'] for x in res['hits']['hits']]
 		update = [x['_source']['updateDate'] for x in res['hits']['hits']]
 		success = [x['_source']['success'] for x in res['hits']['hits']]
 		failed = [x['_source']['failed'] for x in res['hits']['hits']]
-		tabledata = sorted(zip(filenames, zip(size, update, success, failed)), key = lambda x: x[1][0], reverse=True)
+		failedids = [x['_source']['failedids'] for x in res['hits']['hits']]
+		tabledata = sorted(zip(filenames, zip(size, update, success, failed, failedids)), key = lambda x: x[1][0], reverse=True)
 		orderedfilenames = collections.OrderedDict(tabledata)
 	else:
 		orderedfilenames = None

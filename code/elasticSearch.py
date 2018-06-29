@@ -124,15 +124,23 @@ def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
 			df['polygonmeanlat'] = meanlat
 
 	# Bulk upload files and check if successful
-	success, failed = 0, 0
-	for success, info in helpers.parallel_bulk(es, bulk_action(df, INDEX_NAME, TYPE), chunk_size=50, raise_on_error=True):
-		if not success:
-			failed += 1
-		else:
-			success += 1
+	successid, failedid = 0, 0
+	failedids = []
+	for success, info in helpers.parallel_bulk(es, bulk_action(df, INDEX_NAME, TYPE),
+	                                           thread_count=4, chunk_size=50, raise_on_error=True):
+
+
+		successid += info['index']['_shards']['successful']
+		failedid += info['index']['_shards']['failed']
+		if info['index']['_shards']['failed'] > 0:
+			failedids += [info['index']['_id']]
+		#if not success:
+		#	failed += 1
+		#else:
+		#	success += 1
 	print(data, 'added to elasticsearch index ', INDEX_NAME, '\n',
-	      'success: ', success, 'failed: ', failed)
-	return success, failed
+	      'success: ', successid, 'failed: ', failedid)
+	return successid, failedid, failedids
 
 
 def updateFile(datafile, metafile, filename, es):
@@ -189,10 +197,10 @@ def updateFile(datafile, metafile, filename, es):
 		}
 		column_types_dict = {
 			"GeoObject": {
-				#"type": "text" if polygones are not used they could be uploaded as string
-				"type": "geo_shape",
-				"precision": "100km",
-				"ignore_malformed": True
+				"type": "text" #if polygones are not used they could be uploaded as string
+				#"type": "geo_shape",
+				#"precision": "100km",
+				#"ignore_malformed": True
 			},
 			"Date": {
 				"type": "date",
@@ -238,7 +246,7 @@ def updateFile(datafile, metafile, filename, es):
 
 	# Upload new documents
 	print('START INDEXING TO DLRMETADATA ....')
-	success, failed = addDocument(datafile, metafile, filename, INDEX_NAME=indexnames['DATA'], TYPE='doc', es=es)
+	success, failed, failedids = addDocument(datafile, metafile, filename, INDEX_NAME=indexnames['DATA'], TYPE='doc', es=es)
 
 	# Now update data overview
 	metadata = json.loads(metafile.read().decode('utf-8').replace('\0', ''))
@@ -256,7 +264,8 @@ def updateFile(datafile, metafile, filename, es):
 	             'addDate': now,
 	             'updateDate': now,
 	             'success': success,
-	             'failed': failed}
+	             'failed': failed,
+	             'failedids': failedids}
 	filenames.update(constants)
 	es.index(index=indexnames['DATAOVERVIEW'], doc_type='doc', body=filenames)
 	print('ADDED ', filenames['filename'], ' TO DATAOVERVIEW ....')
