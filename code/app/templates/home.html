@@ -302,8 +302,12 @@
 				.key(function (d) { return d.year; })
 				.entries(places);
 			//updatescatter(data.minmax.miny)
-
-			ply = placesByYear.find(d => d.key == data.minmax.miny + "-" + data.minmax.minmonth).values;
+			var selection = placesByYear.find(d => d.key == data.minmax.miny + "-" + data.minmax.minmonth)
+			if (selection == undefined){
+				console.log('No values for selection')
+			} else {
+				ply = selection.values;
+			}
 			lineplot();
 		}
 
@@ -425,30 +429,36 @@
 				//.on('mouseout', tip.hide)
 
 				year = data.minmax.miny + "-" + data.minmax.minmonth
-				var ply = placesByYear.find(d => d.key == year).values;
-				var pins = svg.selectAll("circle").data(ply);
+				var selection = placesByYear.find(d => d.key == year)
+				console.log(selection)
+				if (selection == undefined){
+					console.log('No values for year and month' + year)
+				} else {
+					var ply = selection.values;
+					var pins = svg.selectAll("circle").data(ply);
 
-				//pins.exit().remove();
+					//pins.exit().remove();
 
-				pins.enter()
-					.append("circle")
-					.attr("class", "scatter")
-					.attr("r", 5)
-					.attr("transform", function (d) {
-						return "translate(" + projection([
-							d.scene_lon,
-							d.scene_lat
-						]) + ")";
-					})
-					.style('fill', function (d) { return colorScale(colorInterpolate(d.val)) })
-					.on("mouseover", function (d) {
-						tip.show(d)
-						d3.select(this).attr("r", 10)
-					})
-					.on("mouseout", function (d) {
-						tip.hide(d)
-						d3.select(this).attr("r", 5)
-					});
+					pins.enter()
+						.append("circle")
+						.attr("class", "scatter")
+						.attr("r", 5)
+						.attr("transform", function (d) {
+							return "translate(" + projection([
+								d.scene_lon,
+								d.scene_lat
+							]) + ")";
+						})
+						.style('fill', function (d) { return colorScale(colorInterpolate(d.val)) })
+						.on("mouseover", function (d) {
+							tip.show(d)
+							d3.select(this).attr("r", 10)
+						})
+						.on("mouseout", function (d) {
+							tip.hide(d)
+							d3.select(this).attr("r", 5)
+						});
+				}
 
 				//pins.transition().duration(1);
 				var path = d3.geo.path().projection(projection);
@@ -462,12 +472,13 @@
 		}
 
 		function updatescatter(year, month) {
-			console.log(year, month)
-
 			svg.selectAll("circle").remove();
-			console.log(year + "-" + pad(month, 2))
-			ply = placesByYear.find(d => d.key == year + "-" + pad(month, 2)).values;
-			var pins = svg.selectAll("circle").data(ply);
+			var selection = placesByYear.find(d => d.key == year + "-" + pad(month, 2))
+			if (selection == undefined){
+				console.log('no values for year and month')
+			} else {
+				ply = selection.values;
+				var pins = svg.selectAll("circle").data(ply);
 
 			pins.enter()
 				.append("circle")//, ".pin")
@@ -489,7 +500,7 @@
 					tip.hide(d)
 					d3.select(this).attr("r", 5)
 				})
-
+			}
 		}
 
 
@@ -577,8 +588,6 @@
 				.attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
 				.attr("transform", "translate(" + (width_lp / 2) + "," + (height_lp + margin_lp.bottom) + ")")  // centre below axis
 				.text("Date");
-
-			console.log("hi");
 		}
 
 		$(function () {
@@ -646,7 +655,7 @@
 						$("#slider-range").slider("option", "max", data.minmax.maxy);
 
 						$("#slider-rangeM").slider("option", "min", 1);
-						$("#slider-rangeM").slider("option", "value", 1);
+						$("#slider-rangeM").slider("option", "value", data.minmax.minmonth);
 						$("#slider-rangeM").slider("option", "max", 12);
 						d3worldmap(data);
 					},

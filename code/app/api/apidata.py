@@ -225,8 +225,9 @@ def filter_data():
 		data.index = data.index.map(str)
 		tdict = data[['scene_lat', 'scene_lon', 'year', "val"]].to_dict(orient='index')
 		data['year_'] = [(pd.to_numeric(x.replace('-', '.'))) for x in data['year']]
+		#data['year_'] = [(pd.to_numeric(x[:4])) for x in data['year']]
 		yearmonthmin = data['year_'].min()
-		mm["miny"] = int(yearmonthmin)
+		mm["miny"] = int(data['year_'].min())
 		mm["maxy"] = int(data['year_'].max())
 		mm["minmonth"] = '{}'.format(yearmonthmin)[-2:]
 
