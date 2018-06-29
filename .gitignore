@@ -11,4 +11,4 @@ gmap.html
 tile.html
 variable_visualization.ipynb
 **/data.json
-elasticserch/elconfig.json
+elasticsearch/elconfig.json
