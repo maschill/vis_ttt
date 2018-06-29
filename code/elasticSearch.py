@@ -163,7 +163,7 @@ def updateFile(datafile, metafile, filename, es):
 	if not es.indices.exists(indexnames['COLUMNDESCRIPTION']) or indexnames['UPDATE_COLUMNDESCRIPTION'] == 'True':
 		print('Start uploading column description')
 		try:
-			columnDescription = json.load(open('../../data/meta/_columnDescription.json'))
+			columnDescription = json.load(open('../../elasticsearch/_columnDescription.json'))
 			for entry in columnDescription:
 				es.index(index=indexnames['COLUMNDESCRIPTION'], doc_type='doc', body=entry)
 		except (FileNotFoundError, FileExistsError):
