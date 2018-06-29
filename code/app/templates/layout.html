@@ -16,12 +16,12 @@
         <script src="http://d3js.org/d3.v3.min.js"></script>
         <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
             <!-- Bokeh includes-->
-        <link rel="stylesheet" href="http://cdn.pydata.org/bokeh/release/bokeh-0.12.16.min.css" type="text/css" />
+        <!-- <link rel="stylesheet" href="http://cdn.pydata.org/bokeh/release/bokeh-0.12.16.min.css" type="text/css" />
         <link rel="stylesheet" href="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.16.min.css" type="text/css" />
         <link rel="stylesheet" href="http://cdn.pydata.org/bokeh/release/bokeh-tables-0.12.16.min.css" type="text/css" />
         <script type="text/javascript" src="http://cdn.pydata.org/bokeh/release/bokeh-0.12.16.min.js"></script>
         <script src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.16.min.js"></script>
-        <script src="https://cdn.pydata.org/bokeh/release/bokeh-tables-0.12.16.min.js"></script>
+        <script src="https://cdn.pydata.org/bokeh/release/bokeh-tables-0.12.16.min.js"></script> -->
 
 <!-- for world map -->
 <script src="http://colorbrewer2.org/export/colorbrewer.js"></script>
@@ -39,8 +39,10 @@
         <style> /* set the CSS */
             html, body {
               margin: 0;
-              height: 100%
+              height: 100%;
+              align-items: center;
             }
+
 
             .bar {
               fill: darkblue;
@@ -104,7 +106,7 @@
     </head>
     <body>
          {% include 'includes/navbar.html' %}
-         <div class="container">
+         <div class="container bg-light">
             {% block body %} {% endblock %}
          </div>
     </body>
