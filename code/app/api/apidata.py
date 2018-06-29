@@ -15,11 +15,13 @@ from bokeh.embed import server_session
 
 es = Elasticsearch('http://localhost:9200')
 
+# Get config files
+indexnames = json.load(open('../../elasticsearch/elconfig.json'))
 
 
 @bp.route('/st/<starttime>', methods=['GET'])
 def get_starttime(starttime):
-	resp = es.search(index='dlrmetadata', doc_type='doc', body={"query": {"match": {"starttime1":
+	resp = es.search(index=indexnames['DATA'], doc_type='doc', body={"query": {"match": {"starttime1":
 		            datetime.datetime.strptime(starttime, '%Y-%m-%d %H:%M:%S.%f')}}})
 	return jsonify(resp)
 
@@ -197,7 +199,7 @@ def filter_data():
 			q['query']['bool']["must"].append({"match": {"mission0":request.args.get("mission0")}}) 
 
 		print('QUERY', q)
-		resp = es.search(index='dlrmetadata', doc_type='doc', body=q, size=1)
+		resp = es.search(index=indexnames['DATA'], doc_type='doc', body=q, size=1)
 
 		values = []
 		for lat_buck in resp["aggregations"]["lat_hist"]['buckets']:

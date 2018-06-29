@@ -132,6 +132,7 @@ def addDocument(data, meta, filename, INDEX_NAME, TYPE, es):
 			success += 1
 	print(data, 'added to elasticsearch index ', INDEX_NAME, '\n',
 	      'success: ', success, 'failed: ', failed)
+	return success, failed
 
 
 def updateFile(datafile, metafile, filename, es):
@@ -146,15 +147,19 @@ def updateFile(datafile, metafile, filename, es):
 		es: elasticsearch class
 	'''
 
+	# Get config files
+	indexnames = json.load(open('../../elasticsearch/elconfig.json'))
+
 	# Column description index creation or if already existsing deleted and created again
-	print('Start uploading column description')
-	if not es.indices.exists('columndescription'):
+
+	if not es.indices.exists(indexnames['COLUMNDESCRIPTION']) or indexnames['UPDATE_COLUMNDESCRIPTION'] == 'True':
+		print('Start uploading column description')
 		try:
 			columnDescription = json.load(open('../../data/meta/_columnDescription.json'))
 			for entry in columnDescription:
-				es.index(index='columndescription', doc_type='doc', body=entry)
+				es.index(index=indexnames['COLUMNDESCRIPTION'], doc_type='doc', body=entry)
 		except (FileNotFoundError, FileExistsError):
-			print('_columnDescription must be located in data/meta to continue relocate file')
+			print('_columnDescription must be located in vis_ttt/elasticseach to continue relocate file')
 			sys.exit(0)
 
 
@@ -169,7 +174,7 @@ def updateFile(datafile, metafile, filename, es):
 	print('STARTED WITH ', filename, ' ....')
 
 	# Create index for data if not exists
-	if not es.indices.exists('dlrmetadata'):
+	if not es.indices.exists(indexnames['DATA']):
 		dlrmetadatabody = {
 				"settings": {
 					"number_of_shards": 1,
@@ -215,37 +220,33 @@ def updateFile(datafile, metafile, filename, es):
 		}
 
 		# Insert column description depending on type into mappings
-		try:
-			coldesc = json.load(open('../../data/meta/_columnDescription.json'))
-			for col in coldesc:
-				if 'id' in col:
-					column_type = col['type']
-					dlrmetadatabody['mappings']['doc']['properties'][str(col['id'])] = column_types_dict[column_type]
-			es.indices.create(index='dlrmetadata', body=dlrmetadatabody)
-			print('DLRMETADATA INDEX CREATED ....')
-		except FileNotFoundError:
-			print('Column description file must be located in ../../data/meta/ '
-			      'from current directory, which is vis_ttt/code/app/')
+		coldesc = json.load(open('../../elasticsearch/_columnDescription.json'))
+		for col in coldesc:
+			if 'id' in col:
+				column_type = col['type']
+				dlrmetadatabody['mappings']['doc']['properties'][str(col['id'])] = column_types_dict[column_type]
+		es.indices.create(index=indexnames['DATA'], body=dlrmetadatabody)
+		print('DLRMETADATA INDEX CREATED ....')
 
 	# Index exists or was created, not set vriables for speed up
 	#es.indices.put_settings(index='dlrmetadata', body={'index': {"refresh_interval" : '-1'}})
 
 	# If file is updated, delete old data
-	if es.indices.exists('dlrmetadata'):
-		es.delete_by_query(index='dlrmetadata', doc_type='doc', body={'query': {'match': {'filename': filename}}})
+	if es.indices.exists(indexnames['DATA']):
+		es.delete_by_query(index=indexnames['DATA'], doc_type='doc', body={'query': {'match': {'filename': filename}}})
 		print('OLD DOCUMENTS DELETED ....')
 
 	# Upload new documents
 	print('START INDEXING TO DLRMETADATA ....')
-	addDocument(datafile, metafile, filename, INDEX_NAME='dlrmetadata', TYPE='doc', es=es)
+	success, failed = addDocument(datafile, metafile, filename, INDEX_NAME=indexnames['DATA'], TYPE='doc', es=es)
 
 	# Now update data overview
 	metadata = json.loads(metafile.read().decode('utf-8').replace('\0', ''))
 	datafile.seek(0)
 
 	# Delete data from table if exists
-	if es.indices.exists('dataoverview'):
-		es.delete_by_query(index='dataoverview', doc_type='doc', body={'query': {'match': {'filename': filename}}})
+	if es.indices.exists(indexnames['DATAOVERVIEW']):
+		es.delete_by_query(index=indexnames['DATAOVERVIEW'], doc_type='doc', body={'query': {'match': {'filename': filename}}})
 
 	# Create metadata about filename
 	now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -253,10 +254,12 @@ def updateFile(datafile, metafile, filename, es):
 	filenames = {'filename': filename.split('.')[0],
 	             'size': len(datafile.read()),
 	             'addDate': now,
-	             'updateDate': now}
+	             'updateDate': now,
+	             'success': success,
+	             'failed': failed}
 	filenames.update(constants)
-	es.index(index='dataoverview', doc_type='doc', body=filenames)
-	print('ADDED ', filenames, ' TO DATAOVERVIEW ....')
+	es.index(index=indexnames['DATAOVERVIEW'], doc_type='doc', body=filenames)
+	print('ADDED ', filenames['filename'], ' TO DATAOVERVIEW ....')
 
 	print('FINISHED ', filename, '....')
 

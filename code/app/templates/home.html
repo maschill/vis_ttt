@@ -89,7 +89,7 @@
     var docnum = {{ docnum | safe }}
     var gap = 10
 
-        var margin = {top: 07, right: 20, bottom: 00, left: 150},
+        var margin = {top: 07, right: 20, bottom: 00, left: 300},
 			width = 960 - margin.left - margin.right,
 			height = 1305 - margin.top - margin.bottom;
 
@@ -160,6 +160,7 @@
 		  .attr("transform", "rotate(-90)")
 		  .attr("y", 3)
 		  .attr("dy", "0.2em")
+		  .attr("font-size", "20px")
 		  .attr("text-anchor", "end");
 
 		svg.selectAll("rectright")
@@ -172,7 +173,7 @@
 				  .attr("x", width/2 + gap/2) //function(d) { return x(d.std_deviation / d.avg); })
 				  .on('mouseover', tipR.show)
 				  .on('mouseout', tipR.hide)
-				  .on("click", function(d) {$("#measure_variable").val(d.fname); })
+				  .on("click", function(d) {$("#measure_variable").val(d.measure_var); })
 
 		svg.selectAll("rectleft")
 			.data(data).enter()
@@ -185,7 +186,7 @@
 				  //function(d) { return x(d.std_deviation / d.avg); })
 				  .on('mouseover', tipL.show)
 				  .on('mouseout', tipL.hide)
-				  .on("click", function(d) {$("#measure_variable").val(d.fname); })
+				  .on("click", function(d) {$("#measure_variable").val(d.measure_var); })
 				  //.on("click", function(d) {console.log("event = ", d.fname)})
 
 		svg.select("yaxis")
@@ -201,7 +202,7 @@
     var docnum = {{ docnum | safe }}
     var gap = 10
 
-        var margin = {top: 05, right: 20, bottom: 45, left: 150},
+        var margin = {top: 05, right: 20, bottom: 45, left: 300},
 			width = 960 - margin.left - margin.right,
 			height = 70 - margin.top - margin.bottom;
 
@@ -373,7 +374,7 @@ function d3worldmap(data){
 		.style("fill", "url(#linear-gradient)")
 
 	// Set axis
-	var yScale = d3.scale.linear()
+	var yScaleMap = d3.scale.linear()
 		.range([marginscaletop, height-marginscaletop])
 		//.domain([0,100])
 		.nice()
@@ -381,20 +382,20 @@ function d3worldmap(data){
 	places.forEach(function(i,d){
 		colorInterpolate.domain([d3.min(places, function(d) { return d.val; }),
 			d3.max(places, function(d) { return d.val; })]);
-		yScale.domain([d3.min(places, function(d) { return d.val; }),
+		yScaleMap.domain([d3.min(places, function(d) { return d.val; }),
 			d3.max(places, function(d) { return d.val; })]);
 	});
 
-	var yAxis = d3.svg.axis()
+	var yAxisMap = d3.svg.axis()
 		.ticks(5)
 		.tickFormat(d3.format(""))
-		.scale(yScale)
+		.scale(yScaleMap)
 		.orient("right")
 
 	svg.append("g")
 		.attr("class", "axis")
 		.attr("transform","translate("+ 0 +","+ 0 +")")
-		.call(yAxis);
+		.call(yAxisMap);
 
 
 	d3.json("https://s3-us-west-2.amazonaws.com/vida-public/geo/world-topo-min.json", function(error, swiss) {

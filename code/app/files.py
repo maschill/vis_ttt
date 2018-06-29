@@ -2,6 +2,7 @@ import datetime
 import glob
 import os
 import collections
+import json
 
 def files():
 	now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -17,13 +18,18 @@ def files():
 	return orderedfilenames
 
 def filesfromEL(es):
-	if es.indices.exists('dataoverview'):
-		res = es.search(index='dataoverview', size=200,
-		                body={"query": {"match_all": {}}, "_source": ["filename","size","updateDate"]})
+	indexnames = json.load(open('../../elasticsearch/elconfig.json'))
+
+	if es.indices.exists(indexnames['DATAOVERVIEW']):
+		res = es.search(index=indexnames['DATAOVERVIEW'], size=200,
+		                body={"query": {"match_all": {}}, "_source": ["filename","size","updateDate", "success", "failed"]})
 		filenames = [x['_source']['filename'] for x in res['hits']['hits']]
 		size = [x['_source']['size'] for x in res['hits']['hits']]
 		update = [x['_source']['updateDate'] for x in res['hits']['hits']]
-		orderedfilenames = collections.OrderedDict(sorted(zip(filenames, zip(size, update))))
+		success = [x['_source']['success'] for x in res['hits']['hits']]
+		failed = [x['_source']['failed'] for x in res['hits']['hits']]
+		tabledata = sorted(zip(filenames, zip(size, update, success, failed)), key = lambda x: x[1][0], reverse=True)
+		orderedfilenames = collections.OrderedDict(tabledata)
 	else:
 		orderedfilenames = None
 	return orderedfilenames
