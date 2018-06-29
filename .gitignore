@@ -12,3 +12,4 @@ tile.html
 variable_visualization.ipynb
 **/data.json
 elasticsearch/elconfig.json
+templates/home_slider.html
