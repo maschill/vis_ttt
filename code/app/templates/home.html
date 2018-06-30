@@ -317,25 +317,16 @@
 		console.log(placesByYear);
 	}
 
-	var tip = d3.tip()
-		.attr('class', 'd3-tip')
-		.offset([50, 0])
-		.style("left", "300px")
-		.style("top", "400px")
-		.html(function (d) {
-			return ("Measure: " + d.val + "<br\/>" + "<br\/>" + "Latitude: " + d.scene_lat
-				+ "<br\/>" + "<br\/>" + "Longitude: " + d.scene_lon);
-		})
-	svg.call(tip);
 
 	var width = 600,
-		height = 380;
+		height = 380
+		scale0 = 55
 
 	var color = d3.scale.ordinal()
 		.domain([1, 2, 3, 4, 5, 6, 7, 8, 9])
 		.range(colorbrewer.Oranges[9]);
 
-	var projection = d3.geo.mercator().scale(55).translate([width / 2 + width / 12, height / 2]);
+	var projection = d3.geo.mercator().scale(scale0).translate([width / 2 + width / 12, height / 2]);
 	var path = d3.geo.path()
 		.projection(projection);
 
@@ -374,7 +365,17 @@
 
 		svg = d3.select("#map").append("svg")
 			.attr("viewBox", "0 0 " + width + " " + height)
+			.append("g");
 		//.attr("preserveAspectRatio", "xMidYMid meet");
+
+		var tipmap = d3.tip()
+		.attr('class', 'd3-tip')
+		.offset([-800,0])
+		.html(function (d) {
+			return ("Measure: " + d.val + "<br\/>" + "<br\/>" + "Latitude: " + d.scene_lat
+				+ "<br\/>" + "<br\/>" + "Longitude: " + d.scene_lon);
+		})
+		svg.call(tipmap);
 
 		//append legendS
 		var legend = svg.append("g")
@@ -413,17 +414,37 @@
 			.attr("transform", "translate(" + 0 + "," + 0 + ")")
 			.call(yAxisMap);
 
+		/////////////
+		//ADD ZOOM
+		////////////
+
+		var zoom = d3.behavior.zoom()
+			.translate([width / 2, height / 2])
+			.scale(scale0)
+			.scaleExtent([scale0, 8 * scale0])
+			.on("zoom", zoomed);
+
+		var path = d3.geo.path()
+			.projection(projection);
+
+
+		svg
+			.call(zoom)
+			.call(zoom.event);
+
+
 		d3.json("https://s3-us-west-2.amazonaws.com/vida-public/geo/world-topo-min.json", function (error, swiss) {
 			if (error) throw error;
 
 			var cantons = topojson.feature(swiss, swiss.objects.countries);
-			//svg.call(tip);
 			var group = svg.selectAll("g")
+			group
 				.data(cantons.features)
 				.enter()
-				.append("g");
-			//.on('mouseover', tip.show)
-			//.on('mouseout', tip.hide)
+				.append("path")
+				.attr("d", d3.geo.path().projection(projection))
+				.attr("class", "area")
+				.attr("fill", "darkblue");
 
 			year = data.minmax.miny + "-" + data.minmax.minmonth
 			var selection = placesByYear.find(d => d.key == year)
@@ -448,25 +469,36 @@
 				})
 				.style('fill', function (d) { return colorScale(colorInterpolate(d.val)) })
 				.on("mouseover", function (d) {
-					tip.show(d)
+					tipmap.show(d)
 					d3.select(this).attr("r", 10)
 				})
 				.on("mouseout", function (d) {
-					tip.hide(d)
+					tipmap.hide(d)
 					d3.select(this).attr("r", 5)
 				});
 
 		}
 
-			//pins.transition().duration(1);
-			var path = d3.geo.path().projection(projection);
-
-			var areas = group.append("path")
-				.attr("d", path)
-				.attr("class", "area")
-				.attr("fill", "darkblue");
-
 		});
+
+		function zoomed() {
+		  projection
+			  .translate(zoom.translate())
+			  .scale(zoom.scale());
+
+		 path= d3.geo.path().projection(projection)
+
+		  svg.selectAll("path")
+			  .attr("d", path);
+
+		  svg.selectAll("circle")
+				.attr("transform", function (d) {
+					return "translate(" + projection([
+						d.scene_lon,
+						d.scene_lat
+					]) + ")";
+				})
+		}
 	}
 
 	function updatescatter(year, month) {
@@ -491,11 +523,11 @@
 				.style('fill', function (d) { return colorScale(colorInterpolate(d.val)) })
 
 				.on("mouseover", function (d) {
-					tip.show(d)
+					tipmap.show(d)
 					d3.select(this).attr("r", 10)
 				})
 				.on("mouseout", function (d) {
-					tip.hide(d)
+					tipmap.hide(d)
 					d3.select(this).attr("r", 5)
 				})
 			}
