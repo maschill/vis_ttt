@@ -539,7 +539,7 @@
 		var dataset = [];
 		placesByYear.forEach(function (entry) {
 			var singleObj = {}
-			singleObj['key'] = parseInt(entry.key);
+			singleObj['key'] = Date.parse(entry.key);
 			var sum = 0,
 				cnt = 0;
 			entry.values.forEach(function (d) {
@@ -566,8 +566,15 @@
 				.attr("transform", "translate(" + margin_lp.left + "," + margin_lp.top + ")");
 
 			var xScale_lp = d3.time.scale()
-				.domain([d3.min(dataset, function (d) { return d.key; }), d3.max(dataset, function (d) { return d.key; })]).nice()
+				//.domain(d3.extent(dataset, function(d){ return parseDate(d.key); }))
+				//.domain([d3.min(dataset, function (d) { return d.key; }), d3.max(dataset, function (d) { return d.key; })]).nice()
+				//.domain([0, d3.max(dataset, function (d) { return parseDate.parse(d.key); })])
+				.domain(d3.extent(dataset, function(d) { return Date.parse(d.key); }))
+				.domain(d3.extent(dataset, function(d) { return d.key; }))
 				.range([0, width_lp]);
+
+
+				//.rangeRoundBands([0, width_lp], .5);
 
 			var yScale_lp = d3.scale.linear()
 				.domain([0, d3.max(dataset, function (d) { return d.value; })]).nice()
@@ -579,8 +586,8 @@
 				.innerTickSize(-height_lp)
 				.outerTickSize(0)
 				.tickPadding(10)
-				.ticks(d3.max(dataset, function (d) { return d.key; }) - d3.min(dataset, function (d) { return d.key; }))
-				.tickFormat(d3.format("d"));
+				//.ticks(d3.max(dataset, function (d) { return d.key; }) - d3.min(dataset, function (d) { return d.key; }))
+				//.tickFormat(d3.format("d"));
 
 			var yAxis_lp = d3.svg.axis()
 				.scale(yScale_lp)
