@@ -84,7 +84,9 @@ def download_csv():
 @app.route('/')
 def index():
 	d3data = get_measured_variables()
-	docnum = es.count(index=indexnames['DATA'], filter_path=['count'])['count']
+	docnum = 1
+	if es.indices.exists(indexnames['DATA']):
+		docnum = es.count(index=indexnames['DATA'], filter_path=['count'])['count']
 	return render_template('home.html',  d3data=d3data, docnum=docnum)
 
 @app.route('/data_servant', methods=['POST', 'GET'])
